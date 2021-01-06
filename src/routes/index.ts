@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import sessionsRouter from './sessions.routes';
+import productsRouter from './products.routes';
 
 const routes = Router();
 
@@ -9,5 +10,6 @@ routes.get('/', (request, response) => {
 });
 
 routes.use('/sessions', sessionsRouter);
+routes.use('/products', productsRouter);
 
 export default routes;
