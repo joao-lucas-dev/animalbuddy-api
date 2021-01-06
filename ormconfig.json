@@ -1,0 +1,12 @@
+{
+  "type": "mongodb",
+  "url": "mongodb+srv://admin:EEFn8PgZawAlen9L@forkstore.2u0rb.mongodb.net/forkstore?retryWrites=true&w=majority",
+  "useNewUrlParser": true,
+  "synchronize": true,
+  "useUnifiedTopology": true,
+  "logging": true,
+  "ssl": true,
+  "entities": [
+    "./src/models/*.ts"
+  ]
+}
