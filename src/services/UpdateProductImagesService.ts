@@ -26,7 +26,7 @@ class UpdateProductImagesService {
     });
 
     if (!product) {
-      throw new AppError('Product does not found', 404);
+      throw new AppError("Product doesn't found.", 404);
     }
 
     if (product.images) {
@@ -47,6 +47,7 @@ class UpdateProductImagesService {
     }
 
     product.images = arrImagesFilename;
+    product.updated_at = new Date();
 
     await productsRepository.save(product);
 

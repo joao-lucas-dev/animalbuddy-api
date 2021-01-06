@@ -8,6 +8,7 @@ import enseureAuthenticated from '../middlewares/ensureAuthenticated';
 import Product from '../models/Product';
 import CreateProductService from '../services/CreateProductService';
 import UpdateProductImagesService from '../services/UpdateProductImagesService';
+import UpdateProductService from '../services/UpdateProductService';
 
 const productsRouter = Router();
 const upload = multer(uploadConfig);
@@ -80,11 +81,44 @@ productsRouter.post('/', enseureAuthenticated, async (request, response) => {
 });
 
 productsRouter.patch(
-  '/:id/images',
+  '/:productId',
+  enseureAuthenticated,
+  async (request, response) => {
+    const {
+      title,
+      description,
+      price,
+      oldPrice,
+      isActive,
+      color,
+      type,
+    } = request.body;
+
+    const { productId } = request.params;
+
+    const updateProductService = new UpdateProductService();
+
+    const product = await updateProductService.execute({
+      productId,
+      title,
+      description,
+      price,
+      oldPrice,
+      isActive,
+      color,
+      type,
+    });
+
+    return response.json(product);
+  },
+);
+
+productsRouter.patch(
+  '/:productId/images',
   enseureAuthenticated,
   upload.array('images'),
   async (request, response) => {
-    const { id } = request.params;
+    const { productId } = request.params;
 
     const updateProductImagesService = new UpdateProductImagesService();
 
@@ -93,7 +127,7 @@ productsRouter.patch(
     });
 
     const product = await updateProductImagesService.execute({
-      productId: id,
+      productId,
       arrImagesFilename,
     });
 
