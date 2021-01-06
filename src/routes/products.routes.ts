@@ -1,12 +1,16 @@
 import { Router } from 'express';
 import { getMongoRepository } from 'typeorm';
+import multer from 'multer';
+import uploadConfig from '../config/upload';
 
 import enseureAuthenticated from '../middlewares/ensureAuthenticated';
 
 import Product from '../models/Product';
 import CreateProductService from '../services/CreateProductService';
+import UpdateProductImagesService from '../services/UpdateProductImagesService';
 
 const productsRouter = Router();
+const upload = multer(uploadConfig);
 
 productsRouter.get('/', async (request, response) => {
   const { page, limit: take, order } = request.query;
@@ -74,5 +78,27 @@ productsRouter.post('/', enseureAuthenticated, async (request, response) => {
 
   return response.json(product);
 });
+
+productsRouter.patch(
+  '/:id/images',
+  enseureAuthenticated,
+  upload.array('images'),
+  async (request, response) => {
+    const { id } = request.params;
+
+    const updateProductImagesService = new UpdateProductImagesService();
+
+    const arrImagesFilename = request.files.map((img: any) => {
+      return { filename: img.filename };
+    });
+
+    const product = await updateProductImagesService.execute({
+      productId: id,
+      arrImagesFilename,
+    });
+
+    return response.json(product);
+  },
+);
 
 export default productsRouter;

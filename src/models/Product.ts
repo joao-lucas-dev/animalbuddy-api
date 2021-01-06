@@ -7,6 +7,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+interface IObjImage {
+  filename: string;
+}
+
 @Entity('products')
 class Product {
   @ObjectIdColumn()
@@ -19,7 +23,7 @@ class Product {
   description: string;
 
   @Column()
-  images: Array<string>;
+  images: Array<IObjImage>;
 
   @Column()
   price: number;
