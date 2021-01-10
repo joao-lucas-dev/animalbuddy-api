@@ -46,6 +46,7 @@ productsRouter.get('/', async (request, response) => {
   }
 
   const products = await productsRepository.find({
+    where: { isActive: true },
     order: newOrder,
     skip: Number(page) * Number(take),
     take: Number(take),
