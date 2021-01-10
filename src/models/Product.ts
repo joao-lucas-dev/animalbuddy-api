@@ -26,6 +26,9 @@ class Product {
   images: Array<IObjImage>;
 
   @Column()
+  images_description: Array<IObjImage>;
+
+  @Column()
   price: number;
 
   @Column()
@@ -38,10 +41,7 @@ class Product {
   isActive: boolean;
 
   @Column()
-  color: Array<string>;
-
-  @Column()
-  type: Array<string>;
+  variants: any;
 
   @CreateDateColumn()
   created_at: Date;

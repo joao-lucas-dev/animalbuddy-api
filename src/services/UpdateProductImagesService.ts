@@ -1,12 +1,10 @@
 import { getMongoRepository } from 'typeorm';
-import path from 'path';
-import fs from 'fs';
 import { ObjectID } from 'mongodb';
 
 import AppError from '../errors/AppError';
-
-import uploadConfig from '../config/upload';
 import Product from '../models/Product';
+
+import Storage from '../utils/storage';
 
 interface IObjImage {
   filename: string;
@@ -15,10 +13,15 @@ interface IObjImage {
 interface IRequest {
   productId: string;
   arrImagesFilename: Array<IObjImage>;
+  type?: string;
 }
 
 class UpdateProductImagesService {
-  async execute({ productId, arrImagesFilename }: IRequest): Promise<Product> {
+  async execute({
+    productId,
+    arrImagesFilename,
+    type = '',
+  }: IRequest): Promise<Product> {
     const productsRepository = getMongoRepository(Product);
 
     const product = await productsRepository.findOne({
@@ -29,24 +32,38 @@ class UpdateProductImagesService {
       throw new AppError("Product doesn't found.", 404);
     }
 
-    if (product.images) {
-      await Promise.all(
-        product.images.map(async (img) => {
-          const imageFilePath = path.resolve(
-            uploadConfig.directory,
-            img.filename,
-          );
+    const storage = new Storage();
 
-          const imageFileExists = await fs.promises.stat(imageFilePath);
+    if (type === 'description') {
+      if (product.images_description) {
+        await storage.deleteFiles({
+          productImages: product.images_description,
+          bucket: 'images-products-description',
+        });
+      }
 
-          if (imageFileExists) {
-            await fs.promises.unlink(imageFilePath);
-          }
-        }),
-      );
+      await storage.saveFiles({
+        productImages: arrImagesFilename,
+        bucket: 'images-products-description',
+      });
+
+      product.images_description = arrImagesFilename;
+    } else {
+      if (product.images) {
+        await storage.deleteFiles({
+          productImages: product.images,
+          bucket: 'images-all-products',
+        });
+      }
+
+      await storage.saveFiles({
+        productImages: arrImagesFilename,
+        bucket: 'images-all-products',
+      });
+
+      product.images = arrImagesFilename;
     }
 
-    product.images = arrImagesFilename;
     product.updated_at = new Date();
 
     await productsRepository.save(product);
