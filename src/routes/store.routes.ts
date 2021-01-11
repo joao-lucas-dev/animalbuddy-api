@@ -4,9 +4,9 @@ import { getMongoRepository } from 'typeorm';
 
 import Product from '../models/Product';
 
-const productsRouter = Router();
+const storeRouter = Router();
 
-productsRouter.get(
+storeRouter.get(
   '/',
   celebrate({
     [Segments.QUERY]: {
@@ -88,4 +88,4 @@ productsRouter.get(
   },
 );
 
-export default productsRouter;
+export default storeRouter;

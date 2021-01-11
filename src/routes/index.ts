@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
 import sessionsRouter from './sessions.routes';
-import productsDashboardRouter from './products-dashboard.routes';
-import productsRouter from './products.routes';
+import dashboardRouter from './dashboard.routes';
+import storeRouter from './store.routes';
 import checkoutRouter from './checkout.routes';
 
 const routes = Router();
@@ -12,8 +12,8 @@ routes.get('/', (request, response) => {
 });
 
 routes.use('/sessions', sessionsRouter);
-routes.use('/products-dashboard', productsDashboardRouter);
-routes.use('/products', productsRouter);
+routes.use('/dashboard', dashboardRouter);
+routes.use('/store', storeRouter);
 routes.use('/checkout', checkoutRouter);
 
 export default routes;

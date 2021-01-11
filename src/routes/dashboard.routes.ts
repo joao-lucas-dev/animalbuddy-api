@@ -12,12 +12,13 @@ import UpdateProductImagesService from '../services/UpdateProductImagesService';
 import UpdateProductImagesDescriptionService from '../services/UpdateProductImagesDescriptionService';
 import UpdateProductService from '../services/UpdateProductService';
 import DeleteProductService from '../services/DeleteProductService';
+import GetProductService from '../services/GetProductService';
 
 const productsRouter = Router();
 const upload = multer(uploadConfig);
 
 productsRouter.get(
-  '/',
+  '/products',
   enseureAuthenticated,
   celebrate({
     [Segments.QUERY]: {
@@ -87,8 +88,27 @@ productsRouter.get(
   },
 );
 
+productsRouter.get(
+  '/products/:productId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { productId } = request.params;
+
+    const getProductService = new GetProductService();
+
+    const product = await getProductService.execute(productId);
+
+    return response.json(product);
+  },
+);
+
 productsRouter.post(
-  '/',
+  '/products',
   enseureAuthenticated,
   celebrate({
     [Segments.BODY]: {
@@ -129,7 +149,7 @@ productsRouter.post(
 );
 
 productsRouter.patch(
-  '/:productId',
+  '/products/:productId',
   enseureAuthenticated,
   celebrate({
     [Segments.BODY]: {
@@ -176,7 +196,7 @@ productsRouter.patch(
 );
 
 productsRouter.patch(
-  '/:productId/images-product',
+  '/products/:productId/images',
   enseureAuthenticated,
   celebrate({
     [Segments.PARAMS]: {
@@ -203,7 +223,7 @@ productsRouter.patch(
 );
 
 productsRouter.patch(
-  '/:productId/images-product-description',
+  '/products/:productId/images-description',
   enseureAuthenticated,
   celebrate({
     [Segments.PARAMS]: {
@@ -230,7 +250,7 @@ productsRouter.patch(
 );
 
 productsRouter.delete(
-  '/:productId',
+  '/products/:productId',
   enseureAuthenticated,
   celebrate({
     [Segments.PARAMS]: {
