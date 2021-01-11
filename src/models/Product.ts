@@ -7,10 +7,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-interface IObjImage {
-  filename: string;
-}
-
 @Entity('products')
 class Product {
   @ObjectIdColumn()
@@ -23,10 +19,10 @@ class Product {
   description: string;
 
   @Column()
-  images: Array<IObjImage>;
+  images: Array<string>;
 
   @Column()
-  images_description: Array<IObjImage>;
+  images_description: Array<string>;
 
   @Column()
   price: number;
@@ -41,7 +37,16 @@ class Product {
   isActive: boolean;
 
   @Column()
-  variants: any;
+  variants: [
+    {
+      [key: string]: {
+        [key: string]: any;
+      };
+    },
+  ];
+
+  @Column()
+  product_url: string;
 
   @CreateDateColumn()
   created_at: Date;

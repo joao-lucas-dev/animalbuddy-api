@@ -12,7 +12,14 @@ interface IRequest {
   price: number;
   oldPrice: number;
   isActive: boolean;
-  variants: any;
+  variants: [
+    {
+      [key: string]: {
+        [key: string]: any;
+      };
+    },
+  ];
+  product_url: string;
 }
 
 class UpdateProductService {
@@ -24,6 +31,7 @@ class UpdateProductService {
     oldPrice,
     isActive,
     variants,
+    product_url,
   }: IRequest): Promise<Product> {
     const productsRepository = getMongoRepository(Product);
 
@@ -43,6 +51,7 @@ class UpdateProductService {
     product.variants = variants;
     product.discount =
       oldPrice > price ? Number((oldPrice - price).toFixed(2)) : 0;
+    product.product_url = product_url;
     product.updated_at = new Date();
 
     await productsRepository.save(product);

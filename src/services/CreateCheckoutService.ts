@@ -33,8 +33,7 @@ interface IResponse {
 class CreateCheckoutService {
   async execute({ items, payer }: IRequest): Promise<IResponse> {
     mercadopago.configure({
-      access_token:
-        'TEST-5559882569184114-011016-acf6d43494d5dff66864364d91a50b6b-699678905',
+      access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
     });
 
     const preference = {

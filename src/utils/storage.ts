@@ -6,12 +6,8 @@ import aws, { S3 } from 'aws-sdk';
 import uploadConfig from '../config/upload';
 import AppError from '../errors/AppError';
 
-interface IObjImage {
-  filename: string;
-}
-
 interface IRequest {
-  productImages: Array<IObjImage>;
+  productImages: Array<string>;
   bucket: string;
 }
 
@@ -24,10 +20,10 @@ class Storage {
     });
   }
 
-  async saveFiles({ productImages, bucket }: IRequest): Promise<void> {
+  async saveFilesInS3({ productImages, bucket }: IRequest): Promise<void> {
     await Promise.all(
       productImages.map(async (img) => {
-        const originalPath = path.resolve(uploadConfig.directory, img.filename);
+        const originalPath = path.resolve(uploadConfig.directory, img);
 
         const ContentType = mime.getType(originalPath);
 
@@ -35,52 +31,45 @@ class Storage {
           throw new AppError('File not found');
         }
 
-        if (process.env.STORAGE_DRIVER === 's3') {
-          const fileContent = await fs.promises.readFile(originalPath);
+        const fileContent = await fs.promises.readFile(originalPath);
 
-          this.client
-            .putObject({
-              Bucket: bucket,
-              Key: img.filename,
-              ACL: 'public-read',
-              Body: fileContent,
-              ContentType,
-            })
-            .promise();
+        this.client
+          .putObject({
+            Bucket: bucket,
+            Key: img,
+            ACL: 'public-read',
+            Body: fileContent,
+            ContentType,
+          })
+          .promise();
 
-          await fs.promises.unlink(originalPath);
-        } else {
-          const imageFileExists = await fs.promises.stat(originalPath);
-
-          if (imageFileExists) {
-            await fs.promises.unlink(originalPath);
-          }
-        }
+        await fs.promises.unlink(originalPath);
       }),
     );
   }
 
-  async deleteFiles({ productImages, bucket }: IRequest): Promise<void> {
+  async deleteFilesInS3({ productImages, bucket }: IRequest): Promise<void> {
     await Promise.all(
       productImages.map(async (img) => {
-        if (process.env.STORAGE_DRIVER === 's3') {
-          await this.client
-            .deleteObject({
-              Bucket: bucket,
-              Key: img.filename,
-            })
-            .promise();
-        } else {
-          const originalPath = path.resolve(
-            uploadConfig.directory,
-            img.filename,
-          );
+        await this.client
+          .deleteObject({
+            Bucket: bucket,
+            Key: img,
+          })
+          .promise();
+      }),
+    );
+  }
 
-          const imageFileExists = await fs.promises.stat(originalPath);
+  async deleteFilesInDisk(productImages: Array<string>): Promise<void> {
+    await Promise.all(
+      productImages.map(async (img) => {
+        const originalPath = path.resolve(uploadConfig.directory, img);
 
-          if (imageFileExists) {
-            await fs.promises.unlink(originalPath);
-          }
+        const imageFileExists = await fs.promises.stat(originalPath);
+
+        if (imageFileExists) {
+          await fs.promises.unlink(originalPath);
         }
       }),
     );
