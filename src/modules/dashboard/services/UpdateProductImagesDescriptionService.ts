@@ -1,8 +1,8 @@
 import { getMongoRepository } from 'typeorm';
 import { ObjectID } from 'mongodb';
 
-import AppError from '../errors/AppError';
-import Product from '../models/Product';
+import AppError from '@shared/errors/AppError';
+import Product from '../entities/Product';
 
 import Storage from '../utils/storage';
 
@@ -11,7 +11,7 @@ interface IRequest {
   arrImages: Array<string>;
 }
 
-class UpdateProductImagesService {
+class UpdateProductImagesDescriptionService {
   async execute({ productId, arrImages }: IRequest): Promise<Product> {
     const productsRepository = getMongoRepository(Product);
 
@@ -25,25 +25,25 @@ class UpdateProductImagesService {
 
     const storage = new Storage();
 
-    if (product.images) {
+    if (product.images_description) {
       if (process.env.STORAGE_DRIVER === 's3') {
         await storage.deleteFilesInS3({
-          productImages: product.images,
+          productImages: product.images_description,
           bucket: 'images-all-products',
         });
       } else {
-        await storage.deleteFilesInDisk(product.images);
+        await storage.deleteFilesInDisk(product.images_description);
       }
     }
 
     if (process.env.STORAGE_DRIVER === 's3') {
       await storage.saveFilesInS3({
         productImages: arrImages,
-        bucket: 'images-all-products',
+        bucket: 'images-products-description',
       });
     }
 
-    product.images = arrImages;
+    product.images_description = arrImages;
     product.updated_at = new Date();
 
     await productsRepository.save(product);
@@ -52,4 +52,4 @@ class UpdateProductImagesService {
   }
 }
 
-export default UpdateProductImagesService;
+export default UpdateProductImagesDescriptionService;

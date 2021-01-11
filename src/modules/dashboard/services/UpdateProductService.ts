@@ -1,9 +1,9 @@
 import { getMongoRepository } from 'typeorm';
 import { ObjectID } from 'mongodb';
 
-import AppError from '../errors/AppError';
+import AppError from '@shared/errors/AppError';
 
-import Product from '../models/Product';
+import Product from '../entities/Product';
 
 interface IRequest {
   productId: string;

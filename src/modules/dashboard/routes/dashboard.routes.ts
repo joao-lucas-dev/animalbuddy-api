@@ -2,11 +2,10 @@ import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 import { getMongoRepository } from 'typeorm';
 import multer from 'multer';
-import uploadConfig from '../config/upload';
+import enseureAuthenticated from '@shared/middlewares/ensureAuthenticated';
+import uploadConfig from '@config/upload';
 
-import enseureAuthenticated from '../middlewares/ensureAuthenticated';
-
-import Product from '../models/Product';
+import Product from '../entities/Product';
 import CreateProductService from '../services/CreateProductService';
 import UpdateProductImagesService from '../services/UpdateProductImagesService';
 import UpdateProductImagesDescriptionService from '../services/UpdateProductImagesDescriptionService';
@@ -65,7 +64,7 @@ productsRouter.get(
       ],
     });
 
-    const newProducts = products.map((item) => {
+    const newArrProducts = products.map((item) => {
       if (item.images) {
         const arrImages = item.images.map((img) => {
           if (process.env.STORAGE_DRIVER === 's3') {
@@ -77,14 +76,14 @@ productsRouter.get(
 
         return {
           ...item,
-          images: arrImages,
+          images_url: arrImages,
         };
       }
 
       return item;
     });
 
-    return response.json(newProducts);
+    return response.json(newArrProducts);
   },
 );
 

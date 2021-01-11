@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 import { getMongoRepository } from 'typeorm';
 
-import Product from '../models/Product';
+import Product from '@modules/dashboard/entities/Product';
 
 const storeRouter = Router();
 

@@ -1,9 +1,9 @@
 import { ObjectID } from 'mongodb';
 import { getMongoRepository } from 'typeorm';
 
-import AppError from '../errors/AppError';
+import AppError from '@shared/errors/AppError';
 
-import Product from '../models/Product';
+import Product from '../entities/Product';
 
 class GetProductService {
   async execute(productId: string): Promise<Product> {

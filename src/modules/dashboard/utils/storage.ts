@@ -3,8 +3,8 @@ import fs from 'fs';
 import mime from 'mime';
 import aws, { S3 } from 'aws-sdk';
 
-import uploadConfig from '../config/upload';
-import AppError from '../errors/AppError';
+import uploadConfig from '@config/upload';
+import AppError from '@shared/errors/AppError';
 
 interface IRequest {
   productImages: Array<string>;

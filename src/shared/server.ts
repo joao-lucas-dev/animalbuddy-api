@@ -4,11 +4,12 @@ import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import 'express-async-errors';
 import { errors } from 'celebrate';
-import routes from './routes';
-import AppError from './errors/AppError';
-import uploadConfig from './config/upload';
 
-import './database';
+import AppError from '@shared/errors/AppError';
+import uploadConfig from '@config/upload';
+import routes from './routes';
+
+import '@shared/database';
 
 const app = express();
 

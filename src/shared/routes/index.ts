@@ -1,9 +1,9 @@
 import { Router } from 'express';
 
-import sessionsRouter from './sessions.routes';
-import dashboardRouter from './dashboard.routes';
-import storeRouter from './store.routes';
-import checkoutRouter from './checkout.routes';
+import sessionsRouter from '@modules/users/routes/sessions.routes';
+import dashboardRouter from '@modules/dashboard/routes/dashboard.routes';
+import storeRouter from '@modules/store/routes/store.routes';
+import checkoutRouter from '@modules/checkout/routes/checkout.routes';
 
 const routes = Router();
 

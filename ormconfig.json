@@ -5,6 +5,6 @@
   "database": "forkstore",
   "useUnifiedTopology": true,
   "entities": [
-    "./src/models/*.ts"
+    "./src/modules/**/entities/*.ts"
   ]
 }

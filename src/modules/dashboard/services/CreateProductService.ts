@@ -1,8 +1,8 @@
 import { getMongoRepository } from 'typeorm';
 
-import AppError from '../errors/AppError';
+import AppError from '@shared/errors/AppError';
 
-import Product from '../models/Product';
+import Product from '../entities/Product';
 
 interface IRequest {
   title: string;

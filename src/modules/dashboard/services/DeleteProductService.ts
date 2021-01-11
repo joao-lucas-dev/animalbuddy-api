@@ -1,11 +1,10 @@
 import { ObjectID } from 'mongodb';
 import { getMongoRepository } from 'typeorm';
 
+import AppError from '@shared/errors/AppError';
 import Storage from '../utils/storage';
 
-import AppError from '../errors/AppError';
-
-import Product from '../models/Product';
+import Product from '../entities/Product';
 
 class DeleteProductService {
   async execute(productId: string): Promise<void> {
