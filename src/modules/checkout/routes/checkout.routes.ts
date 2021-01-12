@@ -1,13 +1,20 @@
 import { Router } from 'express';
 
 import CreateCheckoutService from '../services/CreateCheckoutService';
+import UpdateOrderService from '../services/UpdateOrderService';
 
 const checkoutRouter = Router();
 
-checkoutRouter.post('/notifications', async (request, response) => {
-  const { topic, payment } = request.query;
+checkoutRouter.post('/webhook', async (request, response) => {
+  const { data } = request.body;
 
-  return response.json({ topic, payment });
+  const updateOrderService = new UpdateOrderService();
+
+  await updateOrderService.execute({
+    data,
+  });
+
+  return response.send();
 });
 
 checkoutRouter.post('/', async (request, response) => {
@@ -27,3 +34,5 @@ checkoutRouter.post('/', async (request, response) => {
 });
 
 export default checkoutRouter;
+
+// status = approved, in_progress, pending (boleto, pagamento na lotérica)

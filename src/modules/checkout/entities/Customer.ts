@@ -8,15 +8,6 @@ import {
   Unique,
 } from 'typeorm';
 
-interface IProduct {
-  _id: string;
-  qtd: number;
-  status: string;
-  price: number;
-  created_at: Date;
-  updated_at: Date;
-}
-
 @Unique(['email'])
 @Entity('customers')
 class Customer {
@@ -60,7 +51,7 @@ class Customer {
   country: string;
 
   @Column()
-  ordered_products: Array<IProduct>;
+  orders: Array<string>;
 
   @CreateDateColumn()
   created_at: Date;

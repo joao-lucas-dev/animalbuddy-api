@@ -7,25 +7,30 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('requests')
-class Customer {
+interface IProduct {
+  _id: ObjectID;
+  product_id: ObjectID;
+  qtd: number;
+  price: number;
+  created_at: Date;
+  updated_at: Date;
+}
+@Entity('orders')
+class Orders {
   @ObjectIdColumn()
   _id: ObjectID;
 
   @Column()
-  product_id: ObjectID;
+  products: Array<IProduct>;
 
   @Column()
   customer_id: ObjectID;
 
   @Column()
-  qtd: number;
-
-  @Column()
-  price: number;
-
-  @Column()
   status: string;
+
+  @Column()
+  totalPrice: number;
 
   @CreateDateColumn()
   created_at: Date;
@@ -34,4 +39,4 @@ class Customer {
   updated_at: Date;
 }
 
-export default Customer;
+export default Orders;
