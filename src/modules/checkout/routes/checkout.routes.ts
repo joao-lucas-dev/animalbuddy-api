@@ -15,12 +15,15 @@ checkoutRouter.post('/', async (request, response) => {
 
   const createCheckoutService = new CreateCheckoutService();
 
-  const data = await createCheckoutService.execute({
+  const {
+    init_point,
+    sandbox_init_point,
+  } = await createCheckoutService.execute({
     items,
     payer,
   });
 
-  return response.json(data);
+  return response.json({ init_point, sandbox_init_point });
 });
 
 export default checkoutRouter;

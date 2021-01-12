@@ -1,13 +1,20 @@
 import mercadopago from 'mercadopago';
+import { getMongoRepository } from 'typeorm';
+import { ObjectID } from 'mongodb';
+
+import Customer from '../entities/Customer';
+import Request from '../entities/Request';
 
 interface IRequest {
-  items: {
-    productId: string;
-    title: string;
-    description: string;
-    quantity: number;
-    unit_price: number;
-  };
+  items: [
+    {
+      productId: string;
+      title: string;
+      description: string;
+      quantity: number;
+      unit_price: number;
+    },
+  ];
   payer: {
     name: string;
     surname: string;
@@ -18,7 +25,6 @@ interface IRequest {
     street: string;
     number: number;
     complement: string;
-    refenrence: string;
     city: string;
     state: string;
     country: string;
@@ -32,6 +38,101 @@ interface IResponse {
 
 class CreateCheckoutService {
   async execute({ items, payer }: IRequest): Promise<IResponse> {
+    const customersRepository = getMongoRepository(Customer);
+    const requestsRepository = getMongoRepository(Request);
+
+    const customer = await customersRepository.findOne({
+      where: {
+        email: payer.email,
+      },
+    });
+
+    if (!customer) {
+      const newCustomer = await customersRepository.create({
+        name: payer.name,
+        surname: payer.surname,
+        email: payer.email,
+        phone: payer.phone,
+        cpf: payer.cpf,
+        zipCode: payer.zipCode,
+        street: payer.street,
+        number: payer.number,
+        complement: payer.complement,
+        city: payer.city,
+        state: payer.state,
+        country: payer.country,
+        ordered_products: items.map((item) => {
+          return {
+            _id: item.productId,
+            qtd: item.quantity,
+            price: item.unit_price,
+            status: 'pending',
+            created_at: new Date(),
+            updated_at: new Date(),
+          };
+        }),
+      });
+
+      await customersRepository.save(newCustomer);
+
+      await Promise.all(
+        newCustomer.ordered_products.map(async (item) => {
+          const request = await requestsRepository.create({
+            product_id: new ObjectID(item._id),
+            customer_id: newCustomer._id,
+            qtd: item.qtd,
+            price: item.price,
+            status: 'pending',
+          });
+
+          await requestsRepository.save(request);
+        }),
+      );
+    } else {
+      customer.name = payer.name;
+      customer.surname = payer.surname;
+      customer.email = payer.email;
+      customer.phone = payer.phone;
+      customer.cpf = payer.cpf;
+      customer.zipCode = payer.zipCode;
+      customer.street = payer.street;
+      customer.number = payer.number;
+      customer.complement = payer.complement;
+      customer.city = payer.city;
+      customer.state = payer.state;
+      customer.country = payer.country;
+      customer.ordered_products = [
+        ...customer.ordered_products,
+        ...items.map((item) => {
+          return {
+            _id: item.productId,
+            qtd: item.quantity,
+            price: item.unit_price,
+            status: 'pending',
+            created_at: new Date(),
+            updated_at: new Date(),
+          };
+        }),
+      ];
+      customer.updated_at = new Date();
+
+      await customersRepository.save(customer);
+
+      await Promise.all(
+        items.map(async (item) => {
+          const request = await requestsRepository.create({
+            product_id: new ObjectID(item.productId),
+            customer_id: customer._id,
+            qtd: item.quantity,
+            price: item.unit_price,
+            status: 'pending',
+          });
+
+          await requestsRepository.save(request);
+        }),
+      );
+    }
+
     mercadopago.configure({
       access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
     });
