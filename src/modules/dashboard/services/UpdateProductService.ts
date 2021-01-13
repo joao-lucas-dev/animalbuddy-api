@@ -1,9 +1,8 @@
-import { getMongoRepository } from 'typeorm';
 import { ObjectID } from 'mongodb';
 
 import AppError from '@shared/errors/AppError';
 
-import Product from '../entities/Product';
+import Product from '../schemas/Product';
 
 interface IRequest {
   productId: string;
@@ -32,31 +31,27 @@ class UpdateProductService {
     isActive,
     variants,
     product_url,
-  }: IRequest): Promise<Product> {
-    const productsRepository = getMongoRepository(Product);
-
-    const product = await productsRepository.findOne({
-      where: { _id: new ObjectID(productId) },
-    });
+  }: IRequest): Promise<void> {
+    const product = await Product.findOne({ _id: new ObjectID(productId) });
 
     if (!product) {
       throw new AppError("Product doesn't found.", 404);
     }
 
-    product.title = title;
-    product.description = description;
-    product.price = price;
-    product.oldPrice = oldPrice;
-    product.isActive = isActive;
-    product.variants = variants;
-    product.discount =
-      oldPrice > price ? Number((oldPrice - price).toFixed(2)) : 0;
-    product.product_url = product_url;
-    product.updated_at = new Date();
-
-    await productsRepository.save(product);
-
-    return product;
+    await Product.updateOne(
+      { _id: product._id },
+      {
+        title,
+        description,
+        price,
+        oldPrice,
+        isActive,
+        variants,
+        discount: oldPrice > price ? Number((oldPrice - price).toFixed(2)) : 0,
+        product_url,
+        updated_at: new Date(),
+      },
+    );
   }
 }
 

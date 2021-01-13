@@ -1,8 +1,7 @@
-import { getMongoRepository } from 'typeorm';
 import { ObjectID } from 'mongodb';
 
 import AppError from '@shared/errors/AppError';
-import Product from '../entities/Product';
+import Product from '../schemas/Product';
 
 import Storage from '../utils/storage';
 
@@ -12,16 +11,18 @@ interface IRequest {
 }
 
 class UpdateProductImagesService {
-  async execute({ productId, arrImages }: IRequest): Promise<Product> {
-    const productsRepository = getMongoRepository(Product);
+  async execute({ productId, arrImages }: IRequest): Promise<void> {
+    const arrProduct = await Product.aggregate([
+      {
+        $match: { _id: new ObjectID(productId) },
+      },
+    ]);
 
-    const product = await productsRepository.findOne({
-      where: { _id: new ObjectID(productId) },
-    });
-
-    if (!product) {
+    if (arrProduct.length <= 0) {
       throw new AppError("Product doesn't found.", 404);
     }
+
+    const product = arrProduct[0];
 
     const storage = new Storage();
 
@@ -43,12 +44,13 @@ class UpdateProductImagesService {
       });
     }
 
-    product.images = arrImages;
-    product.updated_at = new Date();
-
-    await productsRepository.save(product);
-
-    return product;
+    await Product.updateOne(
+      { _id: product._id },
+      {
+        images: arrImages,
+        updated_at: new Date(),
+      },
+    );
   }
 }
 

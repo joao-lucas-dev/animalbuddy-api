@@ -1,10 +1,10 @@
-import { getMongoRepository } from 'typeorm';
+import { ObjectID } from 'mongodb';
 import { compare } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
 import AppError from '@shared/errors/AppError';
 import authConfig from '@config/auth';
 
-import User from '../entities/User';
+import User from '../schemas/User';
 
 interface IRequest {
   email: string;
@@ -12,17 +12,16 @@ interface IRequest {
 }
 
 interface IResponse {
-  user: User;
+  user: {
+    _id: ObjectID;
+    email: string;
+  };
   token: string;
 }
 
 class AuthenticateUserService {
   async execute({ email, password }: IRequest): Promise<IResponse> {
-    const usersRepository = getMongoRepository(User);
-
-    const user = await usersRepository.findOne({
-      where: { email },
-    });
+    const user = await User.findOne({ email });
 
     if (!user) {
       throw new AppError('Incorrect email/password combination.', 401);
@@ -39,7 +38,12 @@ class AuthenticateUserService {
       expiresIn: authConfig.jwt.expiresIn,
     });
 
-    return { user, token };
+    const userObj = {
+      _id: user._id,
+      email: user.email,
+    };
+
+    return { user: userObj, token };
   }
 }
 

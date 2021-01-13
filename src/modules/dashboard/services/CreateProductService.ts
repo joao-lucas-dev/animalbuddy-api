@@ -1,8 +1,7 @@
-import { getMongoRepository } from 'typeorm';
-
 import AppError from '@shared/errors/AppError';
+import { ObjectID } from 'mongodb';
 
-import Product from '../entities/Product';
+import Product from '../schemas/Product';
 
 interface IRequest {
   title: string;
@@ -29,16 +28,21 @@ class CreateProductService {
     isActive,
     variants,
     product_url,
-  }: IRequest): Promise<Product> {
-    const productsRepository = getMongoRepository(Product);
+  }: IRequest): Promise<any> {
+    const hasProduct = await Product.aggregate([
+      {
+        $match: {
+          title,
+        },
+      },
+    ]);
 
-    const hasProduct = await productsRepository.findOne({ where: { title } });
-
-    if (hasProduct) {
+    if (hasProduct.length > 0) {
       throw new AppError('Product already created.', 404);
     }
 
-    const product = productsRepository.create({
+    const product = await Product.create({
+      _id: new ObjectID(),
       title,
       description,
       price,
@@ -48,8 +52,6 @@ class CreateProductService {
       discount: oldPrice > price ? oldPrice - price : 0,
       product_url,
     });
-
-    await productsRepository.save(product);
 
     return product;
   }

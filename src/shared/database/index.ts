@@ -1,3 +1,6 @@
-import { createConnection } from 'typeorm';
+import { connect } from 'mongoose';
 
-createConnection();
+connect(process.env.MONGODB_URL || '', {
+  useUnifiedTopology: true,
+  useNewUrlParser: true,
+});

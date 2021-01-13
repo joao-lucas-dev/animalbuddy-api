@@ -1,22 +1,23 @@
 import { ObjectID } from 'mongodb';
-import { getMongoRepository } from 'typeorm';
 
 import AppError from '@shared/errors/AppError';
 import Storage from '../utils/storage';
 
-import Product from '../entities/Product';
+import Product from '../schemas/Product';
 
 class DeleteProductService {
   async execute(productId: string): Promise<void> {
-    const productsRepository = getMongoRepository(Product);
+    const arrProduct = await Product.aggregate([
+      {
+        $match: { _id: new ObjectID(productId) },
+      },
+    ]);
 
-    const product = await productsRepository.findOne({
-      where: { _id: new ObjectID(productId) },
-    });
-
-    if (!product) {
+    if (arrProduct.length <= 0) {
       throw new AppError('Product not found.', 404);
     }
+
+    const product = arrProduct[0];
 
     const storage = new Storage();
 
@@ -36,7 +37,7 @@ class DeleteProductService {
       await storage.deleteFilesInDisk(product.images_description);
     }
 
-    await productsRepository.deleteOne({ _id: new ObjectID(productId) });
+    await Product.deleteOne({ _id: new ObjectID(productId) });
   }
 }
 

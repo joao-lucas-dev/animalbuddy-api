@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
-import { getMongoRepository } from 'typeorm';
 
-import Product from '@modules/dashboard/entities/Product';
+import Product from '@modules/dashboard/schemas/Product';
 
 const storeRouter = Router();
 
 storeRouter.get(
-  '/',
+  '/products',
   celebrate({
     [Segments.QUERY]: {
       page: Joi.number().required(),
@@ -16,58 +15,65 @@ storeRouter.get(
     },
   }),
   async (request, response) => {
-    const { page, limit: take, order } = request.query;
-
-    const productsRepository = getMongoRepository(Product);
+    const { page, limit, order } = request.query;
 
     let newOrder = {};
 
     switch (order) {
       case 'biggestPrice':
         newOrder = {
-          price: 'DESC',
+          price: -1,
         };
         break;
       case 'lowestPrice':
         newOrder = {
-          price: 'ASC',
+          price: 1,
         };
         break;
       case 'recentDate':
         newOrder = {
-          created_at: 'DESC',
+          createdAt: -1,
         };
         break;
       case 'oldestDate':
         newOrder = {
-          created_at: 'ASC',
+          createdAt: 1,
         };
         break;
       default:
         break;
     }
 
-    const products = await productsRepository.find({
-      where: { isActive: true },
-      order: newOrder,
-      skip: Number(page) * Number(take),
-      take: Number(take),
-      select: [
-        '_id',
-        'title',
-        'description',
-        'price',
-        'oldPrice',
-        'discount',
-        'variants',
-        'images',
-        'created_at',
-      ],
-    });
+    const products = await Product.aggregate([
+      {
+        $sort: {
+          ...newOrder,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+      {
+        $project: {
+          _id: '$_id',
+          title: '$title',
+          description: '$description',
+          price: '$price',
+          oldPrice: '$oldPrice',
+          discount: '$discount',
+          variants: '$variants',
+          images: '$images',
+          createdAt: '$createdAt',
+        },
+      },
+    ]);
 
-    const newProducts = products.map((item) => {
+    const newArrProducts = products.map((item) => {
       if (item.images) {
-        const arrImages = item.images.map((img) => {
+        const arrImages = item.images.map((img: any) => {
           if (process.env.STORAGE_DRIVER === 's3') {
             return `https://images-all-products.s3.amazonaws.com/${img}`;
           }
@@ -77,14 +83,14 @@ storeRouter.get(
 
         return {
           ...item,
-          images: arrImages,
+          images_url: arrImages,
         };
       }
 
       return item;
     });
 
-    return response.json(newProducts);
+    return response.json(newArrProducts);
   },
 );
 

@@ -23,8 +23,6 @@ sessionsRouter.post(
       password,
     });
 
-    delete user.password;
-
     return response.json({ user, token });
   },
 );

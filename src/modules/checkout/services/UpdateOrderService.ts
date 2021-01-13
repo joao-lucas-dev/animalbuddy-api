@@ -1,9 +1,8 @@
 import mercadopago from 'mercadopago';
 import { ObjectID } from 'mongodb';
-import { getMongoRepository } from 'typeorm';
 
 import AppError from '@shared/errors/AppError';
-import Order from '../entities/Orders';
+import Order from '../schemas/Order';
 
 interface IRequest {
   data: {
@@ -13,28 +12,27 @@ interface IRequest {
 
 class UpdateOrderService {
   async execute({ data }: IRequest): Promise<void> {
-    const ordersRepository = getMongoRepository(Order);
-
     mercadopago.configure({
       access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
     });
 
     const { response } = await mercadopago.payment.findById(Number(data.id));
 
-    const order = await ordersRepository.findOne({
-      where: {
-        _id: new ObjectID(response.external_reference),
-      },
+    const order = await Order.findOne({
+      _id: new ObjectID(response.external_reference),
     });
 
     if (!order) {
       throw new AppError('Order does not found');
     }
 
-    order.status = response.status;
-    order.updated_at = new Date();
-
-    await ordersRepository.save(order);
+    await Order.updateOne(
+      { _id: order._id },
+      {
+        status: response.status,
+        updated_at: new Date(),
+      },
+    );
   }
 }
 

@@ -1,22 +1,25 @@
 import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
-import { getMongoRepository } from 'typeorm';
 import multer from 'multer';
 import enseureAuthenticated from '@shared/middlewares/ensureAuthenticated';
 import uploadConfig from '@config/upload';
 
-import Product from '../entities/Product';
+import Customer from '@modules/checkout/schemas/Customer';
+import { ObjectID } from 'mongodb';
+import Product from '../schemas/Product';
 import CreateProductService from '../services/CreateProductService';
 import UpdateProductImagesService from '../services/UpdateProductImagesService';
 import UpdateProductImagesDescriptionService from '../services/UpdateProductImagesDescriptionService';
 import UpdateProductService from '../services/UpdateProductService';
 import DeleteProductService from '../services/DeleteProductService';
 import GetProductService from '../services/GetProductService';
+import UpdateCustomerService from '../services/UpdateCustomerService';
+import DeleteCustomerService from '../services/DeleteCustomerService';
 
-const productsRouter = Router();
+const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
 
-productsRouter.get(
+dashboardRoutes.get(
   '/products',
   enseureAuthenticated,
   celebrate({
@@ -28,45 +31,55 @@ productsRouter.get(
     },
   }),
   async (request, response) => {
-    const { page, limit: take, order, isActive } = request.query;
-
-    const productsRepository = getMongoRepository(Product);
+    const { page, limit, order, isActive } = request.query;
 
     let newOrder = {};
 
     switch (order) {
       case 'recentDate':
         newOrder = {
-          created_at: 'DESC',
+          created_at: -1,
         };
         break;
       case 'oldestDate':
         newOrder = {
-          created_at: 'ASC',
+          created_at: 1,
         };
         break;
       default:
         break;
     }
 
-    const products = await productsRepository.find({
-      where: { isActive: isActive === 'true' },
-      order: newOrder,
-      skip: Number(page) * Number(take),
-      take: Number(take),
-      select: [
-        '_id',
-        'title',
-        'isActive',
-        'images',
-        'created_at',
-        'updated_at',
-      ],
-    });
+    const products = await Product.aggregate([
+      {
+        $match: { isActive: isActive === 'true' },
+      },
+      {
+        $sort: {
+          ...newOrder,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+      {
+        $project: {
+          _id: '$_id',
+          title: '$title',
+          isActive: '$isActive',
+          images: '$images',
+          createdAt: '$createdAt',
+          updatedAt: '$updatedAt',
+        },
+      },
+    ]);
 
     const newArrProducts = products.map((item) => {
       if (item.images) {
-        const arrImages = item.images.map((img) => {
+        const arrImages = item.images.map((img: any) => {
           if (process.env.STORAGE_DRIVER === 's3') {
             return `https://images-all-products.s3.amazonaws.com/${img}`;
           }
@@ -87,7 +100,7 @@ productsRouter.get(
   },
 );
 
-productsRouter.get(
+dashboardRoutes.get(
   '/products/:productId',
   enseureAuthenticated,
   celebrate({
@@ -106,7 +119,7 @@ productsRouter.get(
   },
 );
 
-productsRouter.post(
+dashboardRoutes.post(
   '/products',
   enseureAuthenticated,
   celebrate({
@@ -147,7 +160,7 @@ productsRouter.post(
   },
 );
 
-productsRouter.patch(
+dashboardRoutes.put(
   '/products/:productId',
   enseureAuthenticated,
   celebrate({
@@ -179,7 +192,7 @@ productsRouter.patch(
 
     const updateProductService = new UpdateProductService();
 
-    const product = await updateProductService.execute({
+    await updateProductService.execute({
       productId,
       title,
       description,
@@ -190,11 +203,11 @@ productsRouter.patch(
       product_url,
     });
 
-    return response.json(product);
+    return response.send();
   },
 );
 
-productsRouter.patch(
+dashboardRoutes.patch(
   '/products/:productId/images',
   enseureAuthenticated,
   celebrate({
@@ -221,7 +234,7 @@ productsRouter.patch(
   },
 );
 
-productsRouter.patch(
+dashboardRoutes.patch(
   '/products/:productId/images-description',
   enseureAuthenticated,
   celebrate({
@@ -239,16 +252,16 @@ productsRouter.patch(
       return `${img.filename}`;
     });
 
-    const product = await updateProductImagesDescriptionService.execute({
+    await updateProductImagesDescriptionService.execute({
       productId,
       arrImages,
     });
 
-    return response.json(product);
+    return response.send();
   },
 );
 
-productsRouter.delete(
+dashboardRoutes.delete(
   '/products/:productId',
   enseureAuthenticated,
   celebrate({
@@ -267,4 +280,211 @@ productsRouter.delete(
   },
 );
 
-export default productsRouter;
+dashboardRoutes.get(
+  '/customers',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.QUERY]: {
+      page: Joi.number().required(),
+      limit: Joi.number().required(),
+      order: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { page, limit, order } = request.query;
+
+    let newOrder = {};
+
+    switch (order) {
+      case 'recentDate':
+        newOrder = {
+          createdAt: -1,
+        };
+        break;
+      case 'oldestDate':
+        newOrder = {
+          createdAt: 1,
+        };
+        break;
+      default:
+        break;
+    }
+
+    const customers = await Customer.aggregate([
+      {
+        $project: {
+          name: 1,
+          surname: 1,
+          city: 1,
+          state: 1,
+          country: 1,
+          createdAt: 1,
+        },
+      },
+      {
+        $lookup: {
+          from: 'orders',
+          localField: '_id',
+          foreignField: 'customer_id',
+          as: 'orders',
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          surname: 1,
+          city: 1,
+          state: 1,
+          country: 1,
+          orders: '$orders',
+          totalSpent: { $sum: '$orders.totalPrice' },
+          createdAt: 1,
+        },
+      },
+      {
+        $sort: {
+          ...newOrder,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+    ]);
+
+    return response.json(customers);
+  },
+);
+
+dashboardRoutes.get(
+  '/customers/:customerId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      customerId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { customerId } = request.params;
+
+    const customer = await Customer.aggregate([
+      {
+        $match: {
+          _id: new ObjectID(customerId),
+        },
+      },
+      {
+        $lookup: {
+          from: 'orders',
+          localField: '_id',
+          foreignField: 'customer_id',
+          as: 'orders',
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          surname: 1,
+          email: 1,
+          phone: 1,
+          cpf: 1,
+          zipCode: 1,
+          street: 1,
+          number: 1,
+          complement: 1,
+          city: 1,
+          state: 1,
+          country: 1,
+          orders: '$orders',
+        },
+      },
+    ]);
+
+    return response.json(customer[0]);
+  },
+);
+
+dashboardRoutes.put(
+  '/customers/:customerId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.BODY]: {
+      name: Joi.string().required(),
+      surname: Joi.string().required(),
+      email: Joi.string().required(),
+      phone: Joi.string().required(),
+      cpf: Joi.string().required(),
+      zipCode: Joi.string().required(),
+      street: Joi.string().required(),
+      number: Joi.number().required(),
+      complement: Joi.string().allow('').required(),
+      city: Joi.string().required(),
+      state: Joi.string().required(),
+      country: Joi.string().required(),
+    },
+    [Segments.PARAMS]: {
+      customerId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const {
+      name,
+      surname,
+      email,
+      phone,
+      cpf,
+      zipCode,
+      street,
+      number,
+      complement,
+      city,
+      state,
+      country,
+    } = request.body;
+
+    const { customerId } = request.params;
+
+    const updateCustomerService = new UpdateCustomerService();
+
+    await updateCustomerService.execute({
+      customerId,
+      name,
+      surname,
+      email,
+      phone,
+      cpf,
+      zipCode,
+      street,
+      number,
+      complement,
+      city,
+      state,
+      country,
+    });
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.delete(
+  '/customers/:customerId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      customerId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { customerId } = request.params;
+
+    const deleteCustomerService = new DeleteCustomerService();
+
+    await deleteCustomerService.execute(customerId);
+
+    return response.send();
+  },
+);
+
+export default dashboardRoutes;

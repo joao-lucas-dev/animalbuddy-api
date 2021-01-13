@@ -1,9 +1,8 @@
 import mercadopago from 'mercadopago';
-import { getMongoRepository } from 'typeorm';
 import { ObjectID } from 'mongodb';
 
-import Customer from '../entities/Customer';
-import Orders from '../entities/Orders';
+import Customer from '../schemas/Customer';
+import Order from '../schemas/Order';
 
 interface IRequest {
   items: [
@@ -38,20 +37,18 @@ interface IResponse {
 
 class CreateCheckoutService {
   async execute({ items, payer }: IRequest): Promise<IResponse> {
-    const customersRepository = getMongoRepository(Customer);
-    const ordersRepository = getMongoRepository(Orders);
-
-    const customer = await customersRepository.findOne({
-      where: {
-        email: payer.email,
-      },
+    const customer = await Customer.findOne({
+      email: payer.email,
     });
 
     let external_reference = '';
 
     if (!customer) {
-      const newCustomer = await customersRepository.create({
-        _id: new ObjectID(),
+      const newCustomerId = new ObjectID();
+      const newOrderId = new ObjectID();
+
+      await Customer.create({
+        _id: newCustomerId,
         name: payer.name,
         surname: payer.surname,
         email: payer.email,
@@ -64,54 +61,60 @@ class CreateCheckoutService {
         city: payer.city,
         state: payer.state,
         country: payer.country,
+        orders: [newOrderId],
       });
 
       const arrProducts = items.map((item) => {
         return {
           _id: new ObjectID(),
           product_id: new ObjectID(item.productId),
+          name: item.title,
           qtd: item.quantity,
           price: item.unit_price,
-          created_at: new Date(),
-          updated_at: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
       });
 
-      const order = await ordersRepository.create({
-        _id: new ObjectID(),
+      await Order.create({
+        _id: newOrderId,
         products: arrProducts,
-        customer_id: newCustomer._id,
+        customer_id: newCustomerId,
         status: 'pending',
         totalPrice: arrProducts.reduce((prevValue, item) => {
           return prevValue + item.price * item.qtd;
         }, 0),
       });
 
-      newCustomer.orders = [`${order._id}`];
-
-      await customersRepository.save(newCustomer);
-      await ordersRepository.save(order);
-
-      external_reference = `${order._id}`;
+      external_reference = `${newOrderId}`;
     } else {
-      customer.name = payer.name;
-      customer.surname = payer.surname;
-      customer.email = payer.email;
-      customer.phone = payer.phone;
-      customer.cpf = payer.cpf;
-      customer.zipCode = payer.zipCode;
-      customer.street = payer.street;
-      customer.number = payer.number;
-      customer.complement = payer.complement;
-      customer.city = payer.city;
-      customer.state = payer.state;
-      customer.country = payer.country;
-      customer.updated_at = new Date();
+      const newOrderId = new ObjectID();
+
+      await Customer.updateOne(
+        { _id: customer._id },
+        {
+          name: payer.name,
+          surname: payer.surname,
+          email: payer.email,
+          phone: payer.phone,
+          cpf: payer.cpf,
+          zipCode: payer.zipCode,
+          street: payer.street,
+          number: payer.number,
+          complement: payer.complement,
+          city: payer.city,
+          state: payer.state,
+          country: payer.country,
+          orders: [...customer.orders, newOrderId],
+          updatedAt: new Date(),
+        },
+      );
 
       const arrProducts = items.map((item) => {
         return {
           _id: new ObjectID(),
           product_id: new ObjectID(item.productId),
+          name: item.title,
           qtd: item.quantity,
           price: item.unit_price,
           created_at: new Date(),
@@ -119,8 +122,8 @@ class CreateCheckoutService {
         };
       });
 
-      const order = await ordersRepository.create({
-        _id: new ObjectID(),
+      await Order.create({
+        _id: newOrderId,
         products: arrProducts,
         customer_id: customer._id,
         status: 'pending',
@@ -129,12 +132,7 @@ class CreateCheckoutService {
         }, 0),
       });
 
-      customer.orders = [...customer.orders, `${order._id}`];
-
-      await customersRepository.save(customer);
-      await ordersRepository.save(order);
-
-      external_reference = `${order._id}`;
+      external_reference = `${newOrderId}`;
     }
 
     mercadopago.configure({
@@ -142,6 +140,11 @@ class CreateCheckoutService {
     });
 
     const preference = {
+      back_urls: {
+        success: 'https://www.forkstore.com.br',
+        failure: 'https://www.forkstore.com.br',
+        pending: 'https://www.forkstore.com.br',
+      },
       items: items.map((item: any) => {
         return {
           id: item.productId,

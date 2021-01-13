@@ -1,21 +1,24 @@
 import { ObjectID } from 'mongodb';
-import { getMongoRepository } from 'typeorm';
 
 import AppError from '@shared/errors/AppError';
 
-import Product from '../entities/Product';
+import Product from '../schemas/Product';
 
 class GetProductService {
-  async execute(productId: string): Promise<Product> {
-    const productsRepository = getMongoRepository(Product);
+  async execute(productId: string): Promise<any> {
+    const arrProduct = await Product.aggregate([
+      {
+        $match: {
+          _id: new ObjectID(productId),
+        },
+      },
+    ]);
 
-    const product = await productsRepository.findOne({
-      where: { _id: new ObjectID(productId) },
-    });
-
-    if (!product) {
+    if (!arrProduct) {
       throw new AppError('Product not found.', 404);
     }
+
+    const product = arrProduct[0];
 
     const newProduct = {
       ...product,
