@@ -31,6 +31,8 @@ class UpdateOrderService {
       {
         status: response.status,
         updated_at: new Date(),
+        payment_id: data.id,
+        payment_type: response.payment_type_id,
       },
     );
   }

@@ -10,6 +10,10 @@ const orderSchema = new mongoose.Schema(
     status: String,
 
     totalPrice: Number,
+
+    payment_id: String,
+
+    payment_type: String,
   },
   {
     timestamps: true,

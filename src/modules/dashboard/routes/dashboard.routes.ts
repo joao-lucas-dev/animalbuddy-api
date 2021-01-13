@@ -1,12 +1,14 @@
 import { Router } from 'express';
+import { ObjectID } from 'mongodb';
 import { celebrate, Joi, Segments } from 'celebrate';
 import multer from 'multer';
 import enseureAuthenticated from '@shared/middlewares/ensureAuthenticated';
 import uploadConfig from '@config/upload';
 
 import Customer from '@modules/checkout/schemas/Customer';
-import { ObjectID } from 'mongodb';
+import Order from '@modules/checkout/schemas/Order';
 import Product from '../schemas/Product';
+
 import CreateProductService from '../services/CreateProductService';
 import UpdateProductImagesService from '../services/UpdateProductImagesService';
 import UpdateProductImagesDescriptionService from '../services/UpdateProductImagesDescriptionService';
@@ -15,9 +17,14 @@ import DeleteProductService from '../services/DeleteProductService';
 import GetProductService from '../services/GetProductService';
 import UpdateCustomerService from '../services/UpdateCustomerService';
 import DeleteCustomerService from '../services/DeleteCustomerService';
+import CancelOrderService from '../services/CancelOrderService';
 
 const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
+
+/**
+ * CUSTOMERS
+ */
 
 dashboardRoutes.get(
   '/products',
@@ -280,6 +287,10 @@ dashboardRoutes.delete(
   },
 );
 
+/**
+ * CUSTOMERS
+ */
+
 dashboardRoutes.get(
   '/customers',
   enseureAuthenticated,
@@ -482,6 +493,108 @@ dashboardRoutes.delete(
     const deleteCustomerService = new DeleteCustomerService();
 
     await deleteCustomerService.execute(customerId);
+
+    return response.send();
+  },
+);
+
+/**
+ * ORDERS
+ */
+
+dashboardRoutes.get(
+  '/orders',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.QUERY]: {
+      page: Joi.number().required(),
+      limit: Joi.number().required(),
+      order: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { page, limit, order } = request.query;
+
+    let newOrder = {};
+
+    switch (order) {
+      case 'recentDate':
+        newOrder = {
+          createdAt: -1,
+        };
+        break;
+      case 'oldestDate':
+        newOrder = {
+          createdAt: 1,
+        };
+        break;
+      default:
+        break;
+    }
+
+    const orders = await Order.aggregate([
+      {
+        $sort: {
+          ...newOrder,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+    ]);
+
+    return response.json(orders);
+  },
+);
+
+dashboardRoutes.get(
+  '/orders/status',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.QUERY]: {
+      page: Joi.number().required(),
+      limit: Joi.number().required(),
+      status: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { page, limit, status } = request.query;
+
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          status,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+    ]);
+
+    return response.json(orders);
+  },
+);
+
+dashboardRoutes.put(
+  '/orders',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      orderId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { orderId } = request.params;
+
+    const cancelOrderService = new CancelOrderService();
+
+    await cancelOrderService.execute(orderId);
 
     return response.send();
   },

@@ -80,7 +80,7 @@ class CreateCheckoutService {
         _id: newOrderId,
         products: arrProducts,
         customer_id: newCustomerId,
-        status: 'pending',
+        status: 'waiting_payment',
         totalPrice: arrProducts.reduce((prevValue, item) => {
           return prevValue + item.price * item.qtd;
         }, 0),
@@ -126,7 +126,7 @@ class CreateCheckoutService {
         _id: newOrderId,
         products: arrProducts,
         customer_id: customer._id,
-        status: 'pending',
+        status: 'waiting_payment',
         totalPrice: arrProducts.reduce((prevValue, item) => {
           return prevValue + item.price * item.qtd;
         }, 0),
