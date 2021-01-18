@@ -23,7 +23,7 @@ const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
 
 /**
- * CUSTOMERS
+ * PRODUCTS
  */
 
 dashboardRoutes.get(
@@ -581,8 +581,8 @@ dashboardRoutes.get(
   },
 );
 
-dashboardRoutes.put(
-  '/orders',
+dashboardRoutes.patch(
+  '/orders/:orderId',
   enseureAuthenticated,
   celebrate({
     [Segments.PARAMS]: {

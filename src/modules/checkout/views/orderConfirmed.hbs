@@ -1,0 +1,279 @@
+<style>
+  .message-content {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    max-width: 600px;
+    padding: 10px;
+    margin: auto;
+  }
+
+  .logo {
+    width: 134px;
+  }
+
+  .top {
+    margin-bottom: 40px;
+  }
+
+  .top span {
+    display: block;
+    color: #999;
+    font-size: 16px;
+    margin: 20px 0 0;
+  }
+
+  .top h2 {
+    color: #000;
+    font-size: 24px;
+    font-weight: normal;
+    margin: 3px 0 10px 0;
+  }
+
+  .top p {
+    color: #777;
+    font-size: 16px;
+    line-height: 150%;
+    margin: 0;
+    text-align: justify;
+  }
+
+  .area-cart h3 {
+    color: #000;
+    font-size: 20px;
+    margin: 0 0 25px;
+    font-weight: normal;
+  }
+
+  .area-cart .products {
+    border-bottom: 1px solid#e5e5e5;
+  }
+
+  .area-cart .products .product {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 1px 15px;
+  }
+
+  .area-cart .products .product-name {
+    width: 80%;
+  }
+
+  .area-cart .products .product-name h4 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #555;
+    padding: 0;
+    margin: 0;
+  }
+
+  .area-cart .products .product-name span {
+    font-size: 14px;
+    color: #999;
+  }
+
+  .area-cart .products .product-price span {
+    font-size: 16px;
+    color: #555;
+    line-height: 150%;
+    font-weight: 600;
+    margin: 0 0 0 15px;
+  }
+
+  .area-cart .area-price-info {
+    border-bottom: 1px solid#e5e5e5;
+    padding: 15px 1px;
+  }
+
+  .area-cart .area-price-info .subtotal,
+  .area-cart .area-price-info .frete {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 1px 15px;
+  }
+
+  .area-cart .area-price-info .subtotal .left span,
+  .area-cart .area-price-info .frete .left span {
+    color: #777;
+    font-size: 16px;
+  }
+
+  .area-cart .area-price-info .subtotal .right span,
+  .area-cart .area-price-info .frete .right span {
+    color: #555;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .area-cart .area-total {
+    padding: 15px 1px;
+  }
+
+  .area-cart .area-total .total {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 1px 15px;
+  }
+
+  .area-cart .area-total .total .left span {
+    color: #777;
+    font-size: 16px;
+  }
+
+  .area-cart .area-total .total .right span {
+    color: #555;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .customer-infos .address {
+    margin-top: 80px;
+  }
+
+  .customer-infos .address h3 {
+    font-size: 20px;
+    margin: 0 0 25px;
+    font-weight: normal;
+  }
+
+  .customer-infos .address h4,
+  .customer-infos .payment h4 {
+    font-size: 16px;
+    margin: 0 0 5px;
+    font-weight: 500;
+    color: #555;
+  }
+
+  .customer-infos .address p {
+    font-size: 16px;
+    margin: 0;
+    line-height: 150%;
+    color: #777;
+  }
+
+  .customer-infos .payment {
+    margin-top: 20px;
+  }
+
+  .customer-infos .payment span {
+    font-size: 16px;
+    color: #777;
+  }
+
+  .footer {
+    padding: 35px;
+    border-top: 1px solid#e5e5e5;
+    margin-top: 40px;
+  }
+
+  .footer p {
+    color: #999;
+    line-height: 150%;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .footer p a {
+    text-decoration: none;
+    font-size: 14px;
+    color: #1990C6;
+  }
+</style>
+
+<div class="message-content">
+  <img class="logo" src="https://forkstore.s3.amazonaws.com/logo.png">
+
+  <div class="top">
+    <span>PEDIDO #{{order_number}}</span>
+    <h2>Obrigado pela compra!</h2>
+    <p>Olá, {{name}}. Estamos preparando seu pedido para enviá-lo. Enviaremos uma notificação pra você quando ele for enviado.</p>
+  </div>
+
+  <div class="area-cart">
+    <h3>Resumo dos pedidos</h3>
+
+    <div class="products">
+      {{#each products}}
+        <div class="product">
+          <div class="product-name">
+            <h4>{{name}} x{{qtd}}</h4>
+          </div>
+
+          <div class="product-price">
+            <span>{{priceFormatted}}</span>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+
+    <div class="area-price-info">
+      <div class="subtotal">
+        <div class="left">
+          <span>Subtotal</span>
+        </div>
+
+        <div class="right">
+          <span>{{subtotal}}</span>
+        </div>
+      </div>
+
+      <div class="frete">
+        <div class="left">
+          <span>Frete</span>
+        </div>
+
+        <div class="right">
+          <span>R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="area-total">
+      <div class="total">
+        <div class="left">
+          <span>Total</span>
+        </div>
+
+        <div class="right">
+          <span>{{total}} BRL</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="customer-infos">
+    <div class="address">
+      <h3>Informações do cliente</h3>
+
+      <h4>Endereço de entrega</h4>
+      <p>
+        {{customer_street}}, {{customer_number}} <br/>
+        {{#if customer_complement }}
+        {{customer_complement}} <br/>
+        {{/if}}
+        {{customer_city}} - {{customer_state}} <br />
+        {{customer_country}}
+      </p>
+    </div>
+
+    <div class="payment">
+      <h4>Forma de Pagamento</h4>
+
+      <span>que termina com {{last_four_digits}}</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <center>
+      <p>
+        Se você tiver alguma dúvida, responda a esta mensagem ou entre em contato
+        conosco pelo e‑mail <a href="mailto:contato@forkstore.com.br">contato@forkstore.com.br</a>
+      </p>
+    </center>
+  </div>
+</div>

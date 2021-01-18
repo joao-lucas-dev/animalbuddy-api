@@ -10,7 +10,7 @@ checkoutRouter.post('/webhook', async (request, response) => {
 
   const updateOrderService = new UpdateOrderService();
 
-  await updateOrderService.execute({
+  updateOrderService.execute({
     data,
   });
 
