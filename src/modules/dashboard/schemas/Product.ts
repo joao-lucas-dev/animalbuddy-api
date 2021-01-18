@@ -1,29 +1,80 @@
 import { ObjectID } from 'mongodb';
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const productSchema = new mongoose.Schema(
+interface IVariant {
+  [key: string]: any;
+}
+export interface IProduct extends Document {
+  _id: ObjectID;
+  title: string;
+  description: string;
+  images: Array<string>;
+  images_description: Array<string>;
+  price: number;
+  oldPrice: number;
+  discount: number;
+  isActive: boolean;
+  variants: Array<IVariant>;
+  product_url: string;
+}
+
+const productSchema = new Schema(
   {
-    _id: ObjectID,
+    _id: {
+      type: Schema.Types.ObjectId,
+    },
 
-    title: String,
+    title: {
+      type: String,
+      required: true,
+    },
 
-    description: String,
+    description: {
+      type: String,
+      required: true,
+    },
 
-    images: Array,
+    images: [
+      {
+        type: String,
+      },
+    ],
 
-    images_description: Array,
+    images_description: [
+      {
+        type: String,
+      },
+    ],
 
-    price: Number,
+    price: {
+      type: Number,
+      required: true,
+    },
 
-    oldPrice: Number,
+    oldPrice: {
+      type: Number,
+      required: true,
+    },
 
-    discount: Number,
+    discount: {
+      type: Number,
+      required: true,
+    },
 
-    isActive: Boolean,
+    isActive: {
+      type: Boolean,
+      required: true,
+    },
 
-    variants: Array,
+    variants: {
+      type: Array,
+      required: true,
+    },
 
-    product_url: String,
+    product_url: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -31,4 +82,4 @@ const productSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model('Product', productSchema);
+export default mongoose.model<IProduct>('Product', productSchema);

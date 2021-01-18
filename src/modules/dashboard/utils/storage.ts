@@ -7,7 +7,7 @@ import uploadConfig from '@config/upload';
 import AppError from '@shared/errors/AppError';
 
 interface IRequest {
-  productImages: Array<string>;
+  images: Array<string>;
   bucket: string;
 }
 
@@ -20,9 +20,9 @@ class Storage {
     });
   }
 
-  async saveFilesInS3({ productImages, bucket }: IRequest): Promise<void> {
+  async saveFilesInS3({ images, bucket }: IRequest): Promise<void> {
     await Promise.all(
-      productImages.map(async (img) => {
+      images.map(async (img) => {
         const originalPath = path.resolve(uploadConfig.directory, img);
 
         const ContentType = mime.getType(originalPath);
@@ -48,9 +48,9 @@ class Storage {
     );
   }
 
-  async deleteFilesInS3({ productImages, bucket }: IRequest): Promise<void> {
+  async deleteFilesInS3({ images, bucket }: IRequest): Promise<void> {
     await Promise.all(
-      productImages.map(async (img) => {
+      images.map(async (img) => {
         await this.client
           .deleteObject({
             Bucket: bucket,
@@ -61,9 +61,9 @@ class Storage {
     );
   }
 
-  async deleteFilesInDisk(productImages: Array<string>): Promise<void> {
+  async deleteFilesInDisk(images: Array<string>): Promise<void> {
     await Promise.all(
-      productImages.map(async (img) => {
+      images.map(async (img) => {
         const originalPath = path.resolve(uploadConfig.directory, img);
 
         const imageFileExists = await fs.promises.stat(originalPath);

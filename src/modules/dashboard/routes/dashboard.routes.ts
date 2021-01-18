@@ -8,6 +8,7 @@ import uploadConfig from '@config/upload';
 import Customer from '@modules/checkout/schemas/Customer';
 import Order from '@modules/checkout/schemas/Order';
 import Product from '../schemas/Product';
+import Review from '../schemas/Review';
 
 import CreateProductService from '../services/CreateProductService';
 import UpdateProductImagesService from '../services/UpdateProductImagesService';
@@ -18,6 +19,10 @@ import GetProductService from '../services/GetProductService';
 import UpdateCustomerService from '../services/UpdateCustomerService';
 import DeleteCustomerService from '../services/DeleteCustomerService';
 import CancelOrderService from '../services/CancelOrderService';
+import CreateReviewService from '../services/CreateReviewService';
+import UpdateReviewImagesService from '../services/UpdateReviewImagesService';
+import UpdateReviewService from '../services/UpdateReviewService';
+import DeleteReviewService from '../services/DeleteReviewService';
 
 const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
@@ -499,6 +504,175 @@ dashboardRoutes.delete(
 );
 
 /**
+ * Reviews
+ */
+dashboardRoutes.get(
+  '/products/:productId/reviews',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.QUERY]: {
+      page: Joi.number().required(),
+      limit: Joi.number().required(),
+      order: Joi.string().required(),
+      status: Joi.string().required(),
+    },
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { page, limit, order, status } = request.query;
+    const { productId } = request.params;
+
+    let newOrder = {};
+
+    switch (order) {
+      case 'recentDate':
+        newOrder = {
+          created_at: -1,
+        };
+        break;
+      case 'oldestDate':
+        newOrder = {
+          created_at: 1,
+        };
+        break;
+      default:
+        break;
+    }
+
+    const reviews = await Review.aggregate([
+      {
+        $match: { status, product_id: new ObjectID(productId) },
+      },
+      {
+        $sort: {
+          ...newOrder,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+    ]);
+
+    const newArrReviews = reviews.map((item) => {
+      if (item.images) {
+        const arrImages = item.images.map((img: any) => {
+          if (process.env.STORAGE_DRIVER === 's3') {
+            return `https://images-all-products.s3.amazonaws.com/${img}`;
+          }
+
+          return `${process.env.APP_API_URL}/images/${img}`;
+        });
+
+        return {
+          ...item,
+          images_url: arrImages,
+        };
+      }
+
+      return item;
+    });
+
+    return response.json(newArrReviews);
+  },
+);
+
+dashboardRoutes.post(
+  '/products/:productId/reviews',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.BODY]: {
+      name: Joi.string().required(),
+      stars: Joi.number().required(),
+      feedback: Joi.string().required(),
+    },
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { name, stars, feedback } = request.body;
+    const { productId } = request.params;
+
+    const createReviewService = new CreateReviewService();
+
+    const review = await createReviewService.execute({
+      productId: new ObjectID(productId),
+      name,
+      stars,
+      feedback,
+    });
+
+    return response.json(review);
+  },
+);
+
+dashboardRoutes.put(
+  '/reviews/:reviewId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.BODY]: {
+      name: Joi.string().required(),
+      stars: Joi.number().required(),
+      feedback: Joi.string().required(),
+      status: Joi.string().required(),
+    },
+    [Segments.PARAMS]: {
+      reviewId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { name, stars, feedback, status } = request.body;
+
+    const { reviewId } = request.params;
+
+    const updateReviewService = new UpdateReviewService();
+
+    await updateReviewService.execute({
+      reviewId: new ObjectID(reviewId),
+      name,
+      stars,
+      feedback,
+      status,
+    });
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.patch(
+  '/reviews/:reviewId/images',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      reviewId: Joi.string().required(),
+    },
+  }),
+  upload.array('review_images'),
+  async (request, response) => {
+    const { reviewId } = request.params;
+    const { files } = request;
+
+    const images: Array<string> = files.map((img: any) => {
+      return `${img.filename}`;
+    });
+
+    const updateReviewImagesService = new UpdateReviewImagesService();
+
+    await updateReviewImagesService.execute({
+      review_id: new ObjectID(reviewId),
+      images,
+    });
+
+    return response.send();
+  },
+);
+
+/**
  * ORDERS
  */
 
@@ -595,6 +769,27 @@ dashboardRoutes.patch(
     const cancelOrderService = new CancelOrderService();
 
     await cancelOrderService.execute(orderId);
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.delete(
+  '/reviews/:reviewId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      reviewId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { reviewId } = request.params;
+
+    const deleteReviewService = new DeleteReviewService();
+
+    const reviewIdFormatted = new ObjectID(reviewId);
+
+    await deleteReviewService.execute(reviewIdFormatted);
 
     return response.send();
   },
