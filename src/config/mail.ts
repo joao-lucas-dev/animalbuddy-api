@@ -1,10 +1,10 @@
 export default {
-  host: 'smtp.mailtrap.io',
+  host: process.env.NODEMAILER_HOST,
   port: 2525,
   secure: false,
   auth: {
-    user: '53e9d130824418',
-    pass: '6de847185f6cc1',
+    user: process.env.NODEMAILER_USER,
+    pass: process.env.NODEMAILER_PASS,
   },
   default: {
     from: 'AnimalBuddy <contato@animalbuddy.com.br>',

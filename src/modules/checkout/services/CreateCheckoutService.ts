@@ -9,6 +9,7 @@ interface IRequest {
     {
       productId: string;
       title: string;
+      image_url: string;
       description: string;
       quantity: number;
       unit_price: number;
@@ -38,7 +39,14 @@ interface IResponse {
 class CreateCheckoutService {
   async execute({ items, payer }: IRequest): Promise<IResponse> {
     const customer = await Customer.findOne({
-      email: payer.email,
+      $or: [
+        {
+          email: payer.email,
+        },
+        {
+          cpf: payer.cpf,
+        },
+      ],
     });
 
     let external_reference = '';
@@ -71,6 +79,7 @@ class CreateCheckoutService {
           name: item.title,
           qtd: item.quantity,
           price: item.unit_price,
+          image_url: item.image_url,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -84,6 +93,7 @@ class CreateCheckoutService {
         totalPrice: arrProducts.reduce((prevValue, item) => {
           return prevValue + item.price * item.qtd;
         }, 0),
+        email_review_sent: false,
       });
 
       external_reference = `${newOrderId}`;
@@ -117,6 +127,7 @@ class CreateCheckoutService {
           name: item.title,
           qtd: item.quantity,
           price: item.unit_price,
+          image_url: item.image_url,
           created_at: new Date(),
           updated_at: new Date(),
         };
@@ -130,6 +141,7 @@ class CreateCheckoutService {
         totalPrice: arrProducts.reduce((prevValue, item) => {
           return prevValue + item.price * item.qtd;
         }, 0),
+        email_review_sent: false,
       });
 
       external_reference = `${newOrderId}`;

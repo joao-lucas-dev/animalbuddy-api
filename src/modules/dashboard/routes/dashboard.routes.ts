@@ -23,6 +23,7 @@ import CreateReviewService from '../services/CreateReviewService';
 import UpdateReviewImagesService from '../services/UpdateReviewImagesService';
 import UpdateReviewService from '../services/UpdateReviewService';
 import DeleteReviewService from '../services/DeleteReviewService';
+import UpdateOrderTrackingCodeService from '../services/UpdateOrderTrackingCodeService';
 
 const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
@@ -842,6 +843,34 @@ dashboardRoutes.patch(
     const orderIdFormatted = new ObjectID(orderId);
 
     await cancelOrderService.execute(orderIdFormatted);
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.patch(
+  '/orders/:orderId/tracking-code',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.BODY]: {
+      tracking_code: Joi.string().required(),
+    },
+    [Segments.PARAMS]: {
+      orderId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { orderId } = request.params;
+    const { tracking_code } = request.body;
+
+    const updateOrderTrackingCodeService = new UpdateOrderTrackingCodeService();
+
+    const orderIdFormatted = new ObjectID(orderId);
+
+    await updateOrderTrackingCodeService.execute({
+      orderId: orderIdFormatted,
+      tracking_code,
+    });
 
     return response.send();
   },

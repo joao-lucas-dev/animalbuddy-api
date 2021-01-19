@@ -3,8 +3,17 @@
 
   <div style="margin-bottom: 40px;">
     <span style="display: block; color: #999; font-size: 16px; margin: 20px 0 0;">IDENTIFICADOR DO PEDIDO #{{id_order}}</span>
-    <h2 style="color: #000; font-size: 24px; font-weight: normal; margin: 3px 0 10px 0;">Seu pedido de reembolso foi realizado!</h2>
-    <p style="color: #777; font-size: 16px; line-height: 150%; margin: 0;">Valor total reembolsado: <strong style="color: #7239F2; font-size: 18px; font-weight: 600; margin: 0 0 0 5px;">{{refoundPrice}}</strong></p>
+    <h2 style="color: #000; font-size: 24px; font-weight: normal; margin: 3px 0 10px 0;">Seu pedido já está a caminho!</h2>
+    <p style="color: #777; font-size: 16px; line-height: 150%; margin: 0; text-align: justify;">Rastreie sua remessa para ver o status da entrega consultando pelas informações abaixo:</p>
+
+    <br />
+
+    <p style="color: #777; font-size: 16px; line-height: 150%;">
+      Número para rastreio: <strong style="color: #7239F2;">{{tracking_code}}</strong>
+      <br />
+      <br />
+      Site para consultar o rastreio: <a style="word-wrap: break-word; color: #7239F2;" href="https://www2.correios.com.br/sistemas/rastreamento/default.cfm">https://www2.correios.com.br/sistemas/rastreamento/default.cfm</a>
+    </p>
   </div>
 
   <div style="color: #000; font-size: 20px; margin: 0 0 25px; font-weight: normal;">
@@ -25,42 +34,9 @@
         </tr>
       {{/each}}
     </table>
-
-    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
-      <tbody style="border-bottom: 2px solid #eee;">
-        <tr style="width: 100%;">
-          <td style="color: #777; font-size: 16px; padding-top: 20px; width: 100%;">
-            <span>Subtotal</span>
-          </td>
-          <td style="color: #555; font-size: 16px; padding-top: 20px; font-weight: 600; text-align: right;">
-            <span>{{subtotal}}</span>
-          </td>
-        </tr>
-
-        <tr style="width: 100%;">
-          <td style="color: #777; font-size: 16px; padding-top: 10px; padding-bottom: 20px; width: 100%;">
-            <span>Frete - Grátis</span>
-          </td>
-          <td style="color: #555; font-size: 16px; padding-top: 10px; padding-bottom: 20px; font-weight: 600; text-align: right;">
-            <span>R$ 0,00</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
-      <tr style="width: 100%;">
-        <td style="color: #777; font-size: 16px; padding-top: 20px; width: 100%;">
-          <span>Total</span>
-        </td>
-        <td style="color: #777; font-size: 24px; font-weight: 600; padding-top: 20px; text-align:right;">
-          <span>{{total}}</span>
-        </td>
-      </tr>
-    </table>
   </div>
 
-  <div style="padding: 35px; border-top: 1px solid#e5e5e5; margin-top: 40px;">
+  <div style="padding: 35px;">
     <center>
       <p style="color: #999; line-height: 150%; font-size: 14px; margin: 0;">
         Se você tiver alguma dúvida, entre em contato

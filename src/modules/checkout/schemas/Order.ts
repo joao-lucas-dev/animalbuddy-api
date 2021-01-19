@@ -6,6 +6,7 @@ interface IProduct {
   name: string;
   qtd: number;
   price: number;
+  product_url: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +18,8 @@ export interface IOrder extends Document {
   totalPrice: number;
   payment_id: string;
   payment_type: string;
+  tracking_code: string;
+  email_review_sent: boolean;
 }
 
 const orderSchema = new Schema(
@@ -49,6 +52,16 @@ const orderSchema = new Schema(
     payment_type: {
       type: String,
       required: false,
+    },
+
+    tracking_code: {
+      type: String,
+      required: false,
+    },
+
+    email_review_sent: {
+      type: Boolean,
+      required: true,
     },
   },
   {

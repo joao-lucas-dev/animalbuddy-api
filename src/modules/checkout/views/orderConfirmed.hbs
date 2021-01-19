@@ -185,73 +185,74 @@
   }
 </style>
 
-<div class="message-content">
-  <img class="logo" src="https://animalbuddy.s3.amazonaws.com/logo.png">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; padding: 10px; margin: auto;">
+  <img style="width: 180px;" src="https://animalbuddy-public.s3.amazonaws.com/logo.png">
 
-  <div class="top">
-    <span>PEDIDO #{{order_number}}</span>
-    <h2>Obrigado pela compra!</h2>
-    <p>Olá, {{name}}. Estamos preparando seu pedido para enviá-lo. Enviaremos uma notificação pra você quando ele for enviado.</p>
+  <div style="margin-bottom: 40px;">
+    <span style="display: block; color: #999; font-size: 16px; margin: 20px 0 0;">IDENTIFICADOR DO PEDIDO #{{id_order}}</span>
+    <h2 style="color: #000; font-size: 24px; font-weight: normal; margin: 3px 0 10px 0;">Obrigado pela compra!</h2>
+    <p style="color: #777; font-size: 16px; line-height: 150%; margin: 0; text-align: justify;">Olá, {{name}}. Estamos preparando seu pedido para enviá-lo. Enviaremos uma notificação pra você quando ele for enviado.</p>
   </div>
 
-  <div class="area-cart">
+  <div style="color: #000; font-size: 20px; margin: 0 0 25px; font-weight: normal;">
     <h3>Resumo dos pedidos</h3>
 
-    <div class="products">
+    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
       {{#each products}}
-        <div class="product">
-          <div class="product-name">
-            <h4>{{name}} x{{qtd}}</h4>
-          </div>
-
-          <div class="product-price">
-            <span>{{priceFormatted}}</span>
-          </div>
-        </div>
+        <tr style="width: 100%; border-bottom: 1px solid #eee;">
+          <td style="padding-top: 20px; padding-bottom: 20px;">
+            <img src="{{image_url}}" style="width: 60px; margin-right: 20px">
+          </td>
+          <td style="padding-top: 20px; padding-bottom: 20px; padding-right: 20px; width: 100%;">
+            <h4 style="font-size: 16px; font-weight: 600; line-height: 1.4; color: #555; padding: 0; margin: 0;">{{name}} x{{qtd}}</h4>
+          </td>
+          <td style="padding-top: 20px; padding-bottom: 20px;">
+            <p style="color: #555; line-height: 150%; font-size: 16px; font-weight: 600; text-align: right;">{{priceFormatted}}</p>
+          </td>
+        </tr>
       {{/each}}
-    </div>
+    </table>
 
-    <div class="area-price-info">
-      <div class="subtotal">
-        <div class="left">
-          <span>Subtotal</span>
-        </div>
+    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+      <tbody style="border-bottom: 2px solid #eee;">
+        <tr style="width: 100%;">
+          <td style="color: #777; font-size: 16px; padding-top: 20px; width: 100%;">
+            <span>Subtotal</span>
+          </td>
+          <td style="color: #555; font-size: 16px; padding-top: 20px; font-weight: 600; text-align: right;">
+            <span>{{subtotal}}</span>
+          </td>
+        </tr>
 
-        <div class="right">
-          <span>{{subtotal}}</span>
-        </div>
-      </div>
+        <tr style="width: 100%;">
+          <td style="color: #777; font-size: 16px; padding-top: 10px; padding-bottom: 20px; width: 100%;">
+            <span>Frete - Grátis</span>
+          </td>
+          <td style="color: #555; font-size: 16px; padding-top: 10px; padding-bottom: 20px; font-weight: 600; text-align: right;">
+            <span>R$ 0,00</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-      <div class="frete">
-        <div class="left">
-          <span>Frete</span>
-        </div>
-
-        <div class="right">
-          <span>R$ 0,00</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="area-total">
-      <div class="total">
-        <div class="left">
+    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+      <tr style="width: 100%;">
+        <td style="color: #777; font-size: 16px; padding-top: 20px; width: 100%;">
           <span>Total</span>
-        </div>
-
-        <div class="right">
-          <span>{{total}} BRL</span>
-        </div>
-      </div>
-    </div>
+        </td>
+        <td style="color: #777; font-size: 24px; font-weight: 600; padding-top: 20px; text-align:right;">
+          <span>{{total}}</span>
+        </td>
+      </tr>
+    </table>
   </div>
 
-  <div class="customer-infos">
-    <div class="address">
-      <h3>Informações do cliente</h3>
+  <div>
+    <div style="margin-top: 80px;">
+      <h3 style="font-size: 20px; margin: 0 0 25px; font-weight: normal;">Informações do cliente</h3>
 
-      <h4>Endereço de entrega</h4>
-      <p>
+      <h4 style="font-size: 16px; margin: 0 0 5px; font-weight: 500; color: #555;">Endereço de entrega</h4>
+      <p style="font-size: 16px; margin: 0; line-height: 150%; color: #777;">
         {{customer_street}}, {{customer_number}} <br/>
         {{#if customer_complement }}
         {{customer_complement}} <br/>
@@ -261,18 +262,23 @@
       </p>
     </div>
 
-    <div class="payment">
-      <h4>Forma de Pagamento</h4>
+    <div style="margin-top: 20px;">
+      <h4 style="font-size: 16px; margin: 0 0 5px; font-weight: 500; color: #555;">Forma de Pagamento</h4>
 
-      <span>que termina com {{last_four_digits}}</span>
+      <span style="font-size: 16px; color: #777;">
+        {{payment_method}}
+        {{#if isCard }}
+        com final {{last_four_digits}}
+        {{/if}}
+      </span>
     </div>
   </div>
 
-  <div class="footer">
+  <div style="padding: 35px; border-top: 1px solid#e5e5e5; margin-top: 40px;">
     <center>
-      <p>
-        Se você tiver alguma dúvida, responda a esta mensagem ou entre em contato
-        conosco pelo e‑mail <a href="mailto:contato@animalbuddy.com.br">contato@animalbuddy.com.br</a>
+      <p style="color: #999; line-height: 150%; font-size: 14px; margin: 0;">
+        Se você tiver alguma dúvida, entre em contato
+        conosco pelo e‑mail <a style="text-decoration: none; font-size: 14px; color: #7239F2;" href="mailto:contato@animalbuddy.com.br">contato@animalbuddy.com.br</a>
       </p>
     </center>
   </div>

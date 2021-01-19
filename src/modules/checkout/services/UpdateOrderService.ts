@@ -4,6 +4,7 @@ import path from 'path';
 
 import AppError from '@shared/errors/AppError';
 import Mail from '@shared/lib/Mail';
+import SESMail from '@shared/lib/SESMail';
 import Order from '../schemas/Order';
 
 interface IRequest {
@@ -71,7 +72,13 @@ class UpdateOrderService {
     );
 
     if (response.status === 'approved') {
-      const mail = new Mail();
+      let mail = null;
+
+      if (process.env.MAIL_DRIVER === 'ses') {
+        mail = new SESMail();
+      } else {
+        mail = new Mail();
+      }
 
       const orderConfirmedTemplate = path.resolve(
         __dirname,
@@ -80,13 +87,23 @@ class UpdateOrderService {
         'orderConfirmed.hbs',
       );
 
+      let payment_method = '';
+      let isCard = false;
+
+      if (response.payment_type_id !== 'ticket') {
+        payment_method = 'Cartão';
+        isCard = true;
+      } else {
+        payment_method = 'Boleto';
+      }
+
       await mail.sendMail({
         to: order[0].customer_email,
-        subject: '[AnimalBuddy] Pedido confirmado!',
+        subject: 'Seu pedido confirmado!',
         templateData: {
           file: orderConfirmedTemplate,
           variables: {
-            order_number: order[0].order_number,
+            id_order: order[0]._id,
             name: order[0].customer_name,
             products: order[0].products.map((item: any) => {
               return {
@@ -114,6 +131,8 @@ class UpdateOrderService {
             customer_city: order[0].customer_city,
             customer_state: order[0].customer_state,
             customer_country: order[0].customer_country,
+            payment_method,
+            isCard,
             last_four_digits: response.card.last_four_digits,
           },
         },
