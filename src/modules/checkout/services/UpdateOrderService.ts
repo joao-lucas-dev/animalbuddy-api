@@ -70,19 +70,19 @@ class UpdateOrderService {
       },
     );
 
-    const orderConfirmedTemplate = path.resolve(
-      __dirname,
-      '..',
-      'views',
-      'orderConfirmed.hbs',
-    );
-
     if (response.status === 'approved') {
       const mail = new Mail();
 
+      const orderConfirmedTemplate = path.resolve(
+        __dirname,
+        '..',
+        'views',
+        'orderConfirmed.hbs',
+      );
+
       await mail.sendMail({
         to: order[0].customer_email,
-        subject: '[ForkStore] Pedido confirmado!',
+        subject: '[AnimalBuddy] Pedido confirmado!',
         templateData: {
           file: orderConfirmedTemplate,
           variables: {

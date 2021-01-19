@@ -1,35 +1,27 @@
-import { ObjectID } from 'mongodb';
-
 import AppError from '@shared/errors/AppError';
-import Product from '../schemas/Product';
+import Product, { IProduct } from '../schemas/Product';
 
 import Storage from '../utils/storage';
 
 interface IRequest {
-  productId: string;
-  arrImages: Array<string>;
+  productId: IProduct['_id'];
+  images: IProduct['images_description'];
 }
 
 class UpdateProductImagesDescriptionService {
-  async execute({ productId, arrImages }: IRequest): Promise<void> {
-    const arrProduct = await Product.aggregate([
-      {
-        $match: { _id: new ObjectID(productId) },
-      },
-    ]);
+  async execute({ productId, images }: IRequest): Promise<void> {
+    const product = await Product.findById(productId);
 
-    if (arrProduct.length <= 0) {
+    if (!product) {
       throw new AppError("Product doesn't found.", 404);
     }
-
-    const product = arrProduct[0];
 
     const storage = new Storage();
 
     if (product.images_description) {
       if (process.env.STORAGE_DRIVER === 's3') {
         await storage.deleteFilesInS3({
-          productImages: product.images_description,
+          images: product.images_description,
           bucket: 'images-all-products',
         });
       } else {
@@ -39,7 +31,7 @@ class UpdateProductImagesDescriptionService {
 
     if (process.env.STORAGE_DRIVER === 's3') {
       await storage.saveFilesInS3({
-        productImages: arrImages,
+        images,
         bucket: 'images-products-description',
       });
     }
@@ -47,7 +39,7 @@ class UpdateProductImagesDescriptionService {
     await Product.updateOne(
       { _id: product._id },
       {
-        images_description: arrImages,
+        images_description: images,
         updated_at: new Date(),
       },
     );

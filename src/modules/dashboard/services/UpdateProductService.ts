@@ -1,24 +1,16 @@
-import { ObjectID } from 'mongodb';
-
 import AppError from '@shared/errors/AppError';
 
-import Product from '../schemas/Product';
+import Product, { IProduct } from '../schemas/Product';
 
 interface IRequest {
-  productId: string;
-  title: string;
-  description: string;
-  price: number;
-  oldPrice: number;
-  isActive: boolean;
-  variants: [
-    {
-      [key: string]: {
-        [key: string]: any;
-      };
-    },
-  ];
-  product_url: string;
+  productId: IProduct['_id'];
+  title: IProduct['title'];
+  description: IProduct['description'];
+  price: IProduct['price'];
+  oldPrice: IProduct['oldPrice'];
+  isActive: IProduct['isActive'];
+  variants: IProduct['variants'];
+  product_url: IProduct['product_url'];
 }
 
 class UpdateProductService {
@@ -32,7 +24,7 @@ class UpdateProductService {
     variants,
     product_url,
   }: IRequest): Promise<void> {
-    const product = await Product.findOne({ _id: new ObjectID(productId) });
+    const product = await Product.findById(productId);
 
     if (!product) {
       throw new AppError("Product doesn't found.", 404);

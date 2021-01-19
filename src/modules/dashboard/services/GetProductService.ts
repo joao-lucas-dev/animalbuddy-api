@@ -1,27 +1,22 @@
-import { ObjectID } from 'mongodb';
-
 import AppError from '@shared/errors/AppError';
 
-import Product from '../schemas/Product';
+import Product, { IProduct } from '../schemas/Product';
 
+interface IProductWithImagesUrls {
+  product: IProduct;
+  images_url: Array<string>;
+  images_description_url: Array<string>;
+}
 class GetProductService {
-  async execute(productId: string): Promise<any> {
-    const arrProduct = await Product.aggregate([
-      {
-        $match: {
-          _id: new ObjectID(productId),
-        },
-      },
-    ]);
+  async execute(productId: IProduct['_id']): Promise<IProductWithImagesUrls> {
+    const product = await Product.findById(productId);
 
-    if (!arrProduct) {
+    if (!product) {
       throw new AppError('Product not found.', 404);
     }
 
-    const product = arrProduct[0];
-
-    const newProduct = {
-      ...product,
+    return {
+      product,
       images_url: product.images
         ? product.images.map((img) => {
             if (process.env.STORAGE_DRIVER === 's3') {
@@ -41,8 +36,6 @@ class GetProductService {
           })
         : [],
     };
-
-    return newProduct;
   }
 }
 

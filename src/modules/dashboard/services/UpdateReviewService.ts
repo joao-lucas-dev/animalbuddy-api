@@ -1,5 +1,3 @@
-import { ObjectID } from 'mongodb';
-
 import AppError from '@shared/errors/AppError';
 import Storage from '../utils/storage';
 
@@ -21,7 +19,7 @@ class UpdateReviewService {
     feedback,
     status,
   }: IRequest): Promise<void> {
-    const review = await Review.findById(new ObjectID(reviewId));
+    const review = await Review.findById(reviewId);
 
     if (!review) {
       throw new AppError("Review doesn't found.", 404);

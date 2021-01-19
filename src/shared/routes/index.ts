@@ -8,7 +8,7 @@ import checkoutRouter from '@modules/checkout/routes/checkout.routes';
 const routes = Router();
 
 routes.get('/', (request, response) => {
-  return response.json({ name: 'ForkStore API', version: '1.0.0' });
+  return response.json({ name: 'AnimalBuddy API', version: '1.0.0' });
 });
 
 routes.use('/sessions', sessionsRouter);

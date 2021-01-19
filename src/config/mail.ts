@@ -7,6 +7,6 @@ export default {
     pass: '6de847185f6cc1',
   },
   default: {
-    from: 'ForkStore <contato@forkstore.com.br>',
+    from: 'AnimalBuddy <contato@animalbuddy.com.br>',
   },
 };

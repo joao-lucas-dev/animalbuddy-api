@@ -9,6 +9,7 @@ export interface IReview extends Document {
   product_id: IProduct['_id'];
   images: Array<string>;
   status: 'approved' | 'pending' | 'reject';
+  state: string;
 }
 
 const reviewSchema = new Schema(
@@ -40,6 +41,11 @@ const reviewSchema = new Schema(
     ],
 
     status: {
+      type: String,
+      required: true,
+    },
+
+    state: {
       type: String,
       required: true,
     },

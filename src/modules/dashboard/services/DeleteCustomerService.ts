@@ -1,21 +1,15 @@
-import { ObjectID } from 'mongodb';
-
 import AppError from '@shared/errors/AppError';
-import Customer from '@modules/checkout/schemas/Customer';
+import Customer, { ICustomer } from '@modules/checkout/schemas/Customer';
 
 class DeleteCustomerService {
-  async execute(customerId: string): Promise<void> {
-    const arrCustomer = await Customer.aggregate([
-      {
-        $match: { _id: new ObjectID(customerId) },
-      },
-    ]);
+  async execute(customerId: ICustomer['_id']): Promise<void> {
+    const customer = await Customer.findById(customerId);
 
-    if (arrCustomer.length <= 0) {
-      throw new AppError('Product not found.', 404);
+    if (!customer) {
+      throw new AppError('Customer not found.', 404);
     }
 
-    await Customer.deleteOne({ _id: new ObjectID(customerId) });
+    await Customer.deleteOne({ _id: customerId });
   }
 }
 

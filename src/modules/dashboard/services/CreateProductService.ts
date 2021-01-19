@@ -1,22 +1,16 @@
 import AppError from '@shared/errors/AppError';
 import { ObjectID } from 'mongodb';
 
-import Product from '../schemas/Product';
+import Product, { IProduct } from '../schemas/Product';
 
 interface IRequest {
-  title: string;
-  description: string;
-  price: number;
-  oldPrice: number;
-  isActive: boolean;
-  variants: [
-    {
-      [key: string]: {
-        [key: string]: any;
-      };
-    },
-  ];
-  product_url: string;
+  title: IProduct['title'];
+  description: IProduct['description'];
+  price: IProduct['price'];
+  oldPrice: IProduct['oldPrice'];
+  isActive: IProduct['isActive'];
+  variants: IProduct['variants'];
+  product_url: IProduct['product_url'];
 }
 
 class CreateProductService {
@@ -28,16 +22,10 @@ class CreateProductService {
     isActive,
     variants,
     product_url,
-  }: IRequest): Promise<any> {
-    const hasProduct = await Product.aggregate([
-      {
-        $match: {
-          title,
-        },
-      },
-    ]);
+  }: IRequest): Promise<IProduct> {
+    const hasProduct = await Product.findOne({ title });
 
-    if (hasProduct.length > 0) {
+    if (hasProduct) {
       throw new AppError('Product already created.', 404);
     }
 

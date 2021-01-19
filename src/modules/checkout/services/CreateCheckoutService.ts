@@ -141,9 +141,9 @@ class CreateCheckoutService {
 
     const preference = {
       back_urls: {
-        success: 'https://www.forkstore.com.br',
-        failure: 'https://www.forkstore.com.br',
-        pending: 'https://www.forkstore.com.br',
+        success: 'https://www.animalbuddy.com.br',
+        failure: 'https://www.animalbuddy.com.br',
+        pending: 'https://www.animalbuddy.com.br',
       },
       items: items.map((item: any) => {
         return {
@@ -182,7 +182,7 @@ class CreateCheckoutService {
         ],
         installments: 12,
       },
-      statement_descriptor: 'FORKSTORE',
+      statement_descriptor: 'ANIMALBUDDY',
       external_reference,
     };
 

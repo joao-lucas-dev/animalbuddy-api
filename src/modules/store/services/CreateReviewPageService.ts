@@ -1,7 +1,6 @@
 import AppError from '@shared/errors/AppError';
-import Review, { IReview } from '../schemas/Review';
-
-import Product, { IProduct } from '../schemas/Product';
+import Product, { IProduct } from '@modules/dashboard/schemas/Product';
+import Review, { IReview } from '@modules/dashboard/schemas/Review';
 
 interface IRequest {
   productId: IProduct['_id'];
@@ -11,7 +10,7 @@ interface IRequest {
   state: IReview['state'];
 }
 
-class CreateReviewService {
+class CreateReviewPageService {
   async execute({
     productId,
     name,
@@ -30,7 +29,7 @@ class CreateReviewService {
       stars,
       feedback,
       product_id: productId,
-      status: 'approved',
+      status: 'pending',
       state,
     });
 
@@ -38,4 +37,4 @@ class CreateReviewService {
   }
 }
 
-export default CreateReviewService;
+export default CreateReviewPageService;

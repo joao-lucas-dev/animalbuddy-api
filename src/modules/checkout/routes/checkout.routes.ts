@@ -34,5 +34,3 @@ checkoutRouter.post('/', async (request, response) => {
 });
 
 export default checkoutRouter;
-
-// status = approved, in_progress, pending (boleto, pagamento na lotérica)

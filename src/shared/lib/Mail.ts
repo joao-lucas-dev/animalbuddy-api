@@ -51,7 +51,7 @@ export default class EtherealMailProvider {
     templateData,
   }: ISendMail): Promise<void> {
     await this.client.sendMail({
-      from: 'ForkStore <contato@forkstore.com.br>',
+      from: 'AnimalBuddy <contato@animalbuddy.com.br>',
       to,
       subject,
       html: await this.parse(templateData),

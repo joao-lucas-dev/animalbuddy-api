@@ -1,43 +1,59 @@
-import { ObjectID } from 'mongodb';
-
 import AppError from '@shared/errors/AppError';
 import Storage from '../utils/storage';
 
-import Product from '../schemas/Product';
+import Product, { IProduct } from '../schemas/Product';
+import Review from '../schemas/Review';
 
 class DeleteProductService {
-  async execute(productId: string): Promise<void> {
-    const arrProduct = await Product.aggregate([
-      {
-        $match: { _id: new ObjectID(productId) },
-      },
-    ]);
+  async execute(productId: IProduct['_id']): Promise<void> {
+    const product = await Product.findById(productId);
 
-    if (arrProduct.length <= 0) {
+    if (!product) {
       throw new AppError('Product not found.', 404);
     }
 
-    const product = arrProduct[0];
+    const reviews = await Review.find({ product_id: productId });
+
+    const allImagesReview: Array<string> = [];
+
+    reviews.forEach((item) => {
+      allImagesReview.push(...item.images);
+    });
 
     const storage = new Storage();
 
     if (process.env.STORAGE_DRIVER === 's3') {
-      await storage.deleteFilesInS3({
-        productImages: product.images,
-        bucket: 'images-all-products',
-      });
+      if (product.images.length > 0)
+        await storage.deleteFilesInS3({
+          images: product.images,
+          bucket: 'images-all-products',
+        });
 
-      await storage.deleteFilesInS3({
-        productImages: product.images,
-        bucket: 'images-products-description',
-      });
+      if (product.images_description.length > 0)
+        await storage.deleteFilesInS3({
+          images: product.images,
+          bucket: 'images-products-description',
+        });
+
+      if (allImagesReview.length > 0)
+        await storage.deleteFilesInS3({
+          images: allImagesReview,
+          bucket: 'reviews-images',
+        });
     } else {
-      await storage.deleteFilesInDisk(product.images);
+      if (product.images.length > 0)
+        await storage.deleteFilesInDisk(product.images);
 
-      await storage.deleteFilesInDisk(product.images_description);
+      if (product.images_description.length > 0)
+        await storage.deleteFilesInDisk(product.images_description);
+
+      if (allImagesReview.length > 0)
+        await storage.deleteFilesInDisk(allImagesReview);
     }
 
-    await Product.deleteOne({ _id: new ObjectID(productId) });
+    await Review.deleteMany({ product_id: productId });
+
+    await Product.deleteOne({ _id: productId });
   }
 }
 

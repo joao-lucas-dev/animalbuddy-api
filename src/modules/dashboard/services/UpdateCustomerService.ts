@@ -1,22 +1,20 @@
-import { ObjectID } from 'mongodb';
-
 import AppError from '@shared/errors/AppError';
-import Customer from '@modules/checkout/schemas/Customer';
+import Customer, { ICustomer } from '@modules/checkout/schemas/Customer';
 
 interface IRequest {
-  customerId: string;
-  name: string;
-  surname: string;
-  email: string;
-  phone: string;
-  cpf: string;
-  zipCode: string;
-  street: string;
-  number: number;
-  complement: string;
-  city: string;
-  state: string;
-  country: string;
+  customerId: ICustomer['_id'];
+  name: ICustomer['name'];
+  surname: ICustomer['surname'];
+  email: ICustomer['email'];
+  phone: ICustomer['phone'];
+  cpf: ICustomer['cpf'];
+  zipCode: ICustomer['zipCode'];
+  street: ICustomer['street'];
+  number: ICustomer['number'];
+  complement: ICustomer['complement'];
+  city: ICustomer['city'];
+  state: ICustomer['state'];
+  country: ICustomer['country'];
 }
 
 class UpdateCustomerService {
@@ -35,17 +33,11 @@ class UpdateCustomerService {
     state,
     country,
   }: IRequest): Promise<void> {
-    const arrCustomer = await Customer.aggregate([
-      {
-        $match: { _id: new ObjectID(customerId) },
-      },
-    ]);
+    const customer = await Customer.findById(customerId);
 
-    if (arrCustomer.length <= 0) {
+    if (!customer) {
       throw new AppError("Customer doesn't found.", 404);
     }
-
-    const customer = arrCustomer[0];
 
     await Customer.updateOne(
       { _id: customer._id },

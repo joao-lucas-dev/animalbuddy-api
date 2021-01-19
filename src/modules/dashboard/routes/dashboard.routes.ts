@@ -125,7 +125,9 @@ dashboardRoutes.get(
 
     const getProductService = new GetProductService();
 
-    const product = await getProductService.execute(productId);
+    const productIdFormatted = new ObjectID(productId);
+
+    const product = await getProductService.execute(productIdFormatted);
 
     return response.json(product);
   },
@@ -205,7 +207,7 @@ dashboardRoutes.put(
     const updateProductService = new UpdateProductService();
 
     await updateProductService.execute({
-      productId,
+      productId: new ObjectID(productId),
       title,
       description,
       price,
@@ -230,16 +232,17 @@ dashboardRoutes.patch(
   upload.array('images'),
   async (request, response) => {
     const { productId } = request.params;
+    const { files } = request;
 
     const updateProductImagesService = new UpdateProductImagesService();
 
-    const arrImages = request.files.map((img: any) => {
+    const images = files.map((img: any) => {
       return `${img.filename}`;
     });
 
     const product = await updateProductImagesService.execute({
-      productId,
-      arrImages,
+      productId: new ObjectID(productId),
+      images,
     });
 
     return response.json(product);
@@ -257,16 +260,17 @@ dashboardRoutes.patch(
   upload.array('images_description'),
   async (request, response) => {
     const { productId } = request.params;
+    const { files } = request;
 
     const updateProductImagesDescriptionService = new UpdateProductImagesDescriptionService();
 
-    const arrImages = request.files.map((img: any) => {
+    const images = files.map((img: any) => {
       return `${img.filename}`;
     });
 
     await updateProductImagesDescriptionService.execute({
-      productId,
-      arrImages,
+      productId: new ObjectID(productId),
+      images,
     });
 
     return response.send();
@@ -286,7 +290,9 @@ dashboardRoutes.delete(
 
     const deleteProductService = new DeleteProductService();
 
-    await deleteProductService.execute(productId);
+    const productIdFormatted = new ObjectID(productId);
+
+    await deleteProductService.execute(productIdFormatted);
 
     return response.send();
   },
@@ -497,7 +503,9 @@ dashboardRoutes.delete(
 
     const deleteCustomerService = new DeleteCustomerService();
 
-    await deleteCustomerService.execute(customerId);
+    const customerIdFormatted = new ObjectID(customerId);
+
+    await deleteCustomerService.execute(customerIdFormatted);
 
     return response.send();
   },
@@ -589,13 +597,14 @@ dashboardRoutes.post(
       name: Joi.string().required(),
       stars: Joi.number().required(),
       feedback: Joi.string().required(),
+      state: Joi.string().required(),
     },
     [Segments.PARAMS]: {
       productId: Joi.string().required(),
     },
   }),
   async (request, response) => {
-    const { name, stars, feedback } = request.body;
+    const { name, stars, feedback, state } = request.body;
     const { productId } = request.params;
 
     const createReviewService = new CreateReviewService();
@@ -605,6 +614,7 @@ dashboardRoutes.post(
       name,
       stars,
       feedback,
+      state,
     });
 
     return response.json(review);
@@ -672,6 +682,27 @@ dashboardRoutes.patch(
   },
 );
 
+dashboardRoutes.delete(
+  '/reviews/:reviewId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      reviewId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { reviewId } = request.params;
+
+    const deleteReviewService = new DeleteReviewService();
+
+    const reviewIdFormatted = new ObjectID(reviewId);
+
+    await deleteReviewService.execute(reviewIdFormatted);
+
+    return response.send();
+  },
+);
+
 /**
  * ORDERS
  */
@@ -707,6 +738,26 @@ dashboardRoutes.get(
     }
 
     const orders = await Order.aggregate([
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customer_id',
+          foreignField: '_id',
+          as: 'customer_info',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          products: 1,
+          customer_id: 1,
+          status: 1,
+          totalPrice: 1,
+          order_number: 1,
+          customer_name: { $arrayElemAt: ['$customer_info.name', 0] },
+          customer_email: { $arrayElemAt: ['$customer_info.email', 0] },
+        },
+      },
       {
         $sort: {
           ...newOrder,
@@ -744,6 +795,26 @@ dashboardRoutes.get(
         },
       },
       {
+        $lookup: {
+          from: 'customers',
+          localField: 'customer_id',
+          foreignField: '_id',
+          as: 'customer_info',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          products: 1,
+          customer_id: 1,
+          status: 1,
+          totalPrice: 1,
+          order_number: 1,
+          customer_name: { $arrayElemAt: ['$customer_info.name', 0] },
+          customer_email: { $arrayElemAt: ['$customer_info.email', 0] },
+        },
+      },
+      {
         $skip: Number(page) * Number(limit),
       },
       {
@@ -768,28 +839,9 @@ dashboardRoutes.patch(
 
     const cancelOrderService = new CancelOrderService();
 
-    await cancelOrderService.execute(orderId);
+    const orderIdFormatted = new ObjectID(orderId);
 
-    return response.send();
-  },
-);
-
-dashboardRoutes.delete(
-  '/reviews/:reviewId',
-  enseureAuthenticated,
-  celebrate({
-    [Segments.PARAMS]: {
-      reviewId: Joi.string().required(),
-    },
-  }),
-  async (request, response) => {
-    const { reviewId } = request.params;
-
-    const deleteReviewService = new DeleteReviewService();
-
-    const reviewIdFormatted = new ObjectID(reviewId);
-
-    await deleteReviewService.execute(reviewIdFormatted);
+    await cancelOrderService.execute(orderIdFormatted);
 
     return response.send();
   },

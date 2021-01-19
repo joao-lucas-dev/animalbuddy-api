@@ -1,32 +1,89 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const customerSchema = new mongoose.Schema(
+export interface ICustomer extends Document {
+  name: string;
+  surname: string;
+  email: string;
+  phone: string;
+  cpf: string;
+  zipCode: string;
+  street: string;
+  number: number;
+  complement: string;
+  city: string;
+  state: string;
+  country: string;
+  orders: Array<Schema.Types.ObjectId>;
+}
+
+const customerSchema = new Schema(
   {
-    name: String,
+    name: {
+      type: String,
+      required: true,
+    },
 
-    surname: String,
+    surname: {
+      type: String,
+      required: true,
+    },
 
-    email: String,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-    phone: String,
+    phone: {
+      type: String,
+      required: true,
+    },
 
-    cpf: String,
+    cpf: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-    zipCode: String,
+    zipCode: {
+      type: String,
+      required: true,
+    },
 
-    street: String,
+    street: {
+      type: String,
+      required: true,
+    },
 
-    number: Number,
+    number: {
+      type: Number,
+      required: true,
+    },
 
-    complement: String,
+    complement: {
+      type: String,
+      required: false,
+    },
 
-    city: String,
+    city: {
+      type: String,
+      required: true,
+    },
 
-    state: String,
+    state: {
+      type: String,
+      required: true,
+    },
 
-    country: String,
+    country: {
+      type: String,
+      required: true,
+    },
 
-    orders: Array,
+    orders: {
+      type: Array,
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -34,4 +91,4 @@ const customerSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model('Customer', customerSchema);
+export default mongoose.model<ICustomer>('Customer', customerSchema);
