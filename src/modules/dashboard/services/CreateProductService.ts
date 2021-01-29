@@ -5,23 +5,23 @@ import Product, { IProduct } from '../schemas/Product';
 
 interface IRequest {
   title: IProduct['title'];
-  description: IProduct['description'];
   price: IProduct['price'];
   oldPrice: IProduct['oldPrice'];
   isActive: IProduct['isActive'];
   variants: IProduct['variants'];
   product_url: IProduct['product_url'];
+  seoDescription: IProduct['seoDescription'];
 }
 
 class CreateProductService {
   async execute({
     title,
-    description,
     price,
     oldPrice,
     isActive,
     variants,
     product_url,
+    seoDescription,
   }: IRequest): Promise<IProduct> {
     const hasProduct = await Product.findOne({ title });
 
@@ -32,13 +32,13 @@ class CreateProductService {
     const product = await Product.create({
       _id: new ObjectID(),
       title,
-      description,
       price,
       oldPrice,
       isActive,
       variants,
       discount: oldPrice > price ? oldPrice - price : 0,
       product_url,
+      seoDescription,
     });
 
     return product;

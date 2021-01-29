@@ -2,12 +2,13 @@ import { ObjectID } from 'mongodb';
 import mongoose, { Schema, Document } from 'mongoose';
 
 interface IVariant {
+  // eslint-disable-next-line
   [key: string]: any;
 }
 export interface IProduct extends Document {
   _id: ObjectID;
   title: string;
-  description: string;
+  description?: string;
   images: Array<string>;
   images_description: Array<string>;
   price: number;
@@ -16,6 +17,7 @@ export interface IProduct extends Document {
   isActive: boolean;
   variants: Array<IVariant>;
   product_url: string;
+  seoDescription: string;
 }
 
 const productSchema = new Schema(
@@ -31,7 +33,8 @@ const productSchema = new Schema(
 
     description: {
       type: String,
-      required: true,
+      required: false,
+      default: '',
     },
 
     images: [
@@ -72,6 +75,11 @@ const productSchema = new Schema(
     },
 
     product_url: {
+      type: String,
+      required: true,
+    },
+
+    seoDescription: {
       type: String,
       required: true,
     },

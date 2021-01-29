@@ -11,6 +11,11 @@ interface IRequest {
   bucket: string;
 }
 
+interface IDeleteFileS3 {
+  filename: string;
+  bucket: string;
+}
+
 class Storage {
   private client: S3;
 
@@ -48,31 +53,23 @@ class Storage {
     );
   }
 
-  async deleteFilesInS3({ images, bucket }: IRequest): Promise<void> {
-    await Promise.all(
-      images.map(async (img) => {
-        await this.client
-          .deleteObject({
-            Bucket: bucket,
-            Key: img,
-          })
-          .promise();
-      }),
-    );
+  async deleteFileInS3({ filename, bucket }: IDeleteFileS3): Promise<void> {
+    await this.client
+      .deleteObject({
+        Bucket: bucket,
+        Key: filename,
+      })
+      .promise();
   }
 
-  async deleteFilesInDisk(images: Array<string>): Promise<void> {
-    await Promise.all(
-      images.map(async (img) => {
-        const originalPath = path.resolve(uploadConfig.directory, img);
+  async deleteFileInDisk(filename: string): Promise<void> {
+    const originalPath = path.resolve(uploadConfig.directory, filename);
 
-        const imageFileExists = await fs.promises.stat(originalPath);
+    const imageFileExists = await fs.promises.stat(originalPath);
 
-        if (imageFileExists) {
-          await fs.promises.unlink(originalPath);
-        }
-      }),
-    );
+    if (imageFileExists) {
+      await fs.promises.unlink(originalPath);
+    }
   }
 }
 

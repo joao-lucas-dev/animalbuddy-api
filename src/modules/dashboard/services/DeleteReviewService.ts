@@ -14,13 +14,21 @@ class DeleteReviewService {
     const storage = new Storage();
 
     if (process.env.STORAGE_DRIVER === 's3') {
-      await storage.deleteFilesInS3({
-        images: review.images,
-        bucket: 'reviews-images',
-      });
-    } else {
-      await storage.deleteFilesInDisk(review.images);
-    }
+      if (review.images.length > 0)
+        await Promise.all(
+          review.images.map(async (img) => {
+            await storage.deleteFileInS3({
+              filename: img,
+              bucket: 'reviews-images',
+            });
+          }),
+        );
+    } else if (review.images.length > 0)
+      await Promise.all(
+        review.images.map(async (img) => {
+          await storage.deleteFileInDisk(img);
+        }),
+      );
 
     await Review.deleteOne({ _id: reviewId });
   }

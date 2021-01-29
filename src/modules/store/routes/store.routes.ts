@@ -1,14 +1,18 @@
 import { ObjectID } from 'mongodb';
 import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
+import multer from 'multer';
+import uploadConfig from '@config/upload';
 
 import Product from '@modules/dashboard/schemas/Product';
 import Review from '@modules/dashboard/schemas/Review';
 
 import GetProductPageService from '../services/GetProductPageService';
 import CreateReviewPageService from '../services/CreateReviewPageService';
+import UpdateReviewImagesPageService from '../services/UpdateReviewImagesPageService';
 
 const storeRouter = Router();
+const upload = multer(uploadConfig);
 
 /**
  * Products
@@ -196,6 +200,7 @@ storeRouter.post(
   celebrate({
     [Segments.BODY]: {
       name: Joi.string().required(),
+      email: Joi.string().email().required(),
       stars: Joi.number().required(),
       feedback: Joi.string().required(),
       state: Joi.string().required(),
@@ -205,7 +210,7 @@ storeRouter.post(
     },
   }),
   async (request, response) => {
-    const { name, stars, feedback, state } = request.body;
+    const { name, email, stars, feedback, state } = request.body;
     const { productId } = request.params;
 
     const createReviewPageService = new CreateReviewPageService();
@@ -213,6 +218,7 @@ storeRouter.post(
     const review = await createReviewPageService.execute({
       productId: new ObjectID(productId),
       name,
+      email,
       stars,
       feedback,
       state,
@@ -221,4 +227,32 @@ storeRouter.post(
     return response.json(review);
   },
 );
+
+storeRouter.patch(
+  '/reviews/:reviewId/images',
+  celebrate({
+    [Segments.PARAMS]: {
+      reviewId: Joi.string().required(),
+    },
+  }),
+  upload.array('review_images'),
+  async (request, response) => {
+    const { reviewId } = request.params;
+    const { files } = request;
+
+    const images: Array<string> = files.map((img: any) => {
+      return `${img.filename}`;
+    });
+
+    const updateReviewImagesPageService = new UpdateReviewImagesPageService();
+
+    await updateReviewImagesPageService.execute({
+      review_id: new ObjectID(reviewId),
+      images,
+    });
+
+    return response.send();
+  },
+);
+
 export default storeRouter;

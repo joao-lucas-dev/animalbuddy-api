@@ -10,7 +10,7 @@ export default {
     destination: tmpFolder,
     filename(request, file, callback) {
       const fileHash = crypto.randomBytes(10).toString('hex');
-      const filename = `${fileHash}-${file.originalname}`;
+      const filename = `_${fileHash}-${file.originalname}`;
 
       return callback(null, filename);
     },

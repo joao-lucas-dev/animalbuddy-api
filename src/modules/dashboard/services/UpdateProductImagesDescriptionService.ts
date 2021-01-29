@@ -18,17 +18,6 @@ class UpdateProductImagesDescriptionService {
 
     const storage = new Storage();
 
-    if (product.images_description) {
-      if (process.env.STORAGE_DRIVER === 's3') {
-        await storage.deleteFilesInS3({
-          images: product.images_description,
-          bucket: 'images-all-products',
-        });
-      } else {
-        await storage.deleteFilesInDisk(product.images_description);
-      }
-    }
-
     if (process.env.STORAGE_DRIVER === 's3') {
       await storage.saveFilesInS3({
         images,
@@ -36,10 +25,12 @@ class UpdateProductImagesDescriptionService {
       });
     }
 
+    const newImages = [...product.images_description, ...images];
+
     await Product.updateOne(
       { _id: product._id },
       {
-        images_description: images,
+        images_description: newImages,
         updated_at: new Date(),
       },
     );

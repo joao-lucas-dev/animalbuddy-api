@@ -29,7 +29,7 @@ class GetProductService {
       images_description_url: product.images_description
         ? product.images_description.map((img) => {
             if (process.env.STORAGE_DRIVER === 's3') {
-              return `https://images-all-products.s3.amazonaws.com/${img}`;
+              return `https://images-products-description.s3.amazonaws.com/${img}`;
             }
 
             return `${process.env.APP_API_URL}/images/${img}`;

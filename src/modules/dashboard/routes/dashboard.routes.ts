@@ -24,6 +24,8 @@ import UpdateReviewImagesService from '../services/UpdateReviewImagesService';
 import UpdateReviewService from '../services/UpdateReviewService';
 import DeleteReviewService from '../services/DeleteReviewService';
 import UpdateOrderTrackingCodeService from '../services/UpdateOrderTrackingCodeService';
+import DeleteImagesService from '../services/DeleteImagesService';
+import DeleteImagesDescriptionService from '../services/DeleteImagesDescriptionService';
 
 const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
@@ -51,12 +53,12 @@ dashboardRoutes.get(
     switch (order) {
       case 'recentDate':
         newOrder = {
-          created_at: -1,
+          createdAt: -1,
         };
         break;
       case 'oldestDate':
         newOrder = {
-          created_at: 1,
+          createdAt: 1,
         };
         break;
       default:
@@ -140,35 +142,35 @@ dashboardRoutes.post(
   celebrate({
     [Segments.BODY]: {
       title: Joi.string().required(),
-      description: Joi.string().required(),
       price: Joi.number().required(),
       oldPrice: Joi.number().required(),
       isActive: Joi.bool().required(),
       variants: Joi.array().required(),
       product_url: Joi.string().required(),
+      seoDescription: Joi.string().required(),
     },
   }),
   async (request, response) => {
     const {
       title,
-      description,
       price,
       oldPrice,
       isActive,
       variants,
       product_url,
+      seoDescription,
     } = request.body;
 
     const createProductService = new CreateProductService();
 
     const product = await createProductService.execute({
       title,
-      description,
       price,
       oldPrice,
       isActive,
       variants,
       product_url,
+      seoDescription,
     });
 
     return response.json(product);
@@ -181,7 +183,7 @@ dashboardRoutes.put(
   celebrate({
     [Segments.BODY]: {
       title: Joi.string().required(),
-      description: Joi.string().required(),
+      description: Joi.string().allow('').required(),
       price: Joi.number().required(),
       oldPrice: Joi.number().required(),
       isActive: Joi.bool().required(),
@@ -272,6 +274,56 @@ dashboardRoutes.patch(
     await updateProductImagesDescriptionService.execute({
       productId: new ObjectID(productId),
       images,
+    });
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.delete(
+  '/products/:productId/images/:filename',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+      filename: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { productId, filename } = request.params;
+
+    const deleteImagesService = new DeleteImagesService();
+
+    const productIdFormatted = new ObjectID(productId);
+
+    await deleteImagesService.execute({
+      productId: productIdFormatted,
+      filename: `_${filename}`,
+    });
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.delete(
+  '/products/:productId/images-description/:filename',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+      filename: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { productId, filename } = request.params;
+
+    const deleteImagesDescriptionService = new DeleteImagesDescriptionService();
+
+    const productIdFormatted = new ObjectID(productId);
+
+    await deleteImagesDescriptionService.execute({
+      productId: productIdFormatted,
+      filename: `_${filename}`,
     });
 
     return response.send();
@@ -538,12 +590,12 @@ dashboardRoutes.get(
     switch (order) {
       case 'recentDate':
         newOrder = {
-          created_at: -1,
+          createdAt: -1,
         };
         break;
       case 'oldestDate':
         newOrder = {
-          created_at: 1,
+          createdAt: 1,
         };
         break;
       default:
@@ -590,12 +642,100 @@ dashboardRoutes.get(
   },
 );
 
+dashboardRoutes.get(
+  '/reviews/pending',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.QUERY]: {
+      page: Joi.number().required(),
+      limit: Joi.number().required(),
+    },
+  }),
+  async (request, response) => {
+    const { page, limit } = request.query;
+
+    const reviews = await Review.aggregate([
+      {
+        $match: { status: 'pending' },
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product_id',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          stars: 1,
+          feedback: 1,
+          state: 1,
+          createdAt: 1,
+          images: 1,
+          product_title: { $arrayElemAt: ['$product.title', 0] },
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+    ]);
+
+    const newArrReviews = reviews.map((item) => {
+      if (item.images) {
+        const arrImages = item.images.map((img: any) => {
+          if (process.env.STORAGE_DRIVER === 's3') {
+            return `https://reviews-images.s3.amazonaws.com/${img}`;
+          }
+
+          return `${process.env.APP_API_URL}/images/${img}`;
+        });
+
+        return {
+          ...item,
+          images_url: arrImages,
+        };
+      }
+
+      return item;
+    });
+
+    return response.json(newArrReviews);
+  },
+);
+
+dashboardRoutes.get(
+  '/reviews/all/pending',
+  enseureAuthenticated,
+  async (request, response) => {
+    const reviews = await Review.aggregate([
+      {
+        $match: { status: 'pending' },
+      },
+    ]);
+
+    return response.json(reviews);
+  },
+);
+
 dashboardRoutes.post(
   '/products/:productId/reviews',
   enseureAuthenticated,
   celebrate({
     [Segments.BODY]: {
       name: Joi.string().required(),
+      email: Joi.string().required(),
       stars: Joi.number().required(),
       feedback: Joi.string().required(),
       state: Joi.string().required(),
@@ -605,7 +745,7 @@ dashboardRoutes.post(
     },
   }),
   async (request, response) => {
-    const { name, stars, feedback, state } = request.body;
+    const { name, email, stars, feedback, state } = request.body;
     const { productId } = request.params;
 
     const createReviewService = new CreateReviewService();
@@ -613,6 +753,7 @@ dashboardRoutes.post(
     const review = await createReviewService.execute({
       productId: new ObjectID(productId),
       name,
+      email,
       stars,
       feedback,
       state,
@@ -622,33 +763,21 @@ dashboardRoutes.post(
   },
 );
 
-dashboardRoutes.put(
+dashboardRoutes.patch(
   '/reviews/:reviewId',
   enseureAuthenticated,
   celebrate({
-    [Segments.BODY]: {
-      name: Joi.string().required(),
-      stars: Joi.number().required(),
-      feedback: Joi.string().required(),
-      status: Joi.string().required(),
-    },
     [Segments.PARAMS]: {
       reviewId: Joi.string().required(),
     },
   }),
   async (request, response) => {
-    const { name, stars, feedback, status } = request.body;
-
     const { reviewId } = request.params;
 
     const updateReviewService = new UpdateReviewService();
 
     await updateReviewService.execute({
       reviewId: new ObjectID(reviewId),
-      name,
-      stars,
-      feedback,
-      status,
     });
 
     return response.send();

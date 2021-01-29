@@ -24,31 +24,55 @@ class DeleteProductService {
 
     if (process.env.STORAGE_DRIVER === 's3') {
       if (product.images.length > 0)
-        await storage.deleteFilesInS3({
-          images: product.images,
-          bucket: 'images-all-products',
-        });
+        await Promise.all(
+          product.images.map(async (img) => {
+            await storage.deleteFileInS3({
+              filename: img,
+              bucket: 'images-all-products',
+            });
+          }),
+        );
 
       if (product.images_description.length > 0)
-        await storage.deleteFilesInS3({
-          images: product.images,
-          bucket: 'images-products-description',
-        });
+        await Promise.all(
+          product.images_description.map(async (img) => {
+            await storage.deleteFileInS3({
+              filename: img,
+              bucket: 'images-products-description',
+            });
+          }),
+        );
 
       if (allImagesReview.length > 0)
-        await storage.deleteFilesInS3({
-          images: allImagesReview,
-          bucket: 'reviews-images',
-        });
+        await Promise.all(
+          allImagesReview.map(async (img) => {
+            await storage.deleteFileInS3({
+              filename: img,
+              bucket: 'reviews-images',
+            });
+          }),
+        );
     } else {
       if (product.images.length > 0)
-        await storage.deleteFilesInDisk(product.images);
+        await Promise.all(
+          product.images.map(async (img) => {
+            await storage.deleteFileInDisk(img);
+          }),
+        );
 
       if (product.images_description.length > 0)
-        await storage.deleteFilesInDisk(product.images_description);
+        await Promise.all(
+          product.images_description.map(async (img) => {
+            await storage.deleteFileInDisk(img);
+          }),
+        );
 
       if (allImagesReview.length > 0)
-        await storage.deleteFilesInDisk(allImagesReview);
+        await Promise.all(
+          allImagesReview.map(async (img) => {
+            await storage.deleteFileInDisk(img);
+          }),
+        );
     }
 
     await Review.deleteMany({ product_id: productId });

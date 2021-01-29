@@ -1,14 +1,13 @@
 import AppError from '@shared/errors/AppError';
-import Review, { IReview } from '../schemas/Review';
-
-import Storage from '../utils/storage';
+import Storage from '@modules/dashboard/utils/storage';
+import Review, { IReview } from '@modules/dashboard/schemas/Review';
 
 interface IRequest {
   review_id: IReview['_id'];
   images: IReview['images'];
 }
 
-class UpdateReviewImagesService {
+class UpdateReviewImagesPageService {
   async execute({ review_id, images }: IRequest): Promise<void> {
     const review = await Review.findById(review_id);
 
@@ -35,4 +34,4 @@ class UpdateReviewImagesService {
   }
 }
 
-export default UpdateReviewImagesService;
+export default UpdateReviewImagesPageService;

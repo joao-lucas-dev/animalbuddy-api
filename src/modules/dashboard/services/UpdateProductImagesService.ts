@@ -13,21 +13,10 @@ class UpdateProductImagesService {
     const product = await Product.findById(productId);
 
     if (!product) {
-      throw new AppError("Product doesn't found.", 404);
+      throw new AppError('Product not found.', 404);
     }
 
     const storage = new Storage();
-
-    if (product.images) {
-      if (process.env.STORAGE_DRIVER === 's3') {
-        await storage.deleteFilesInS3({
-          images: product.images,
-          bucket: 'images-all-products',
-        });
-      } else {
-        await storage.deleteFilesInDisk(product.images);
-      }
-    }
 
     if (process.env.STORAGE_DRIVER === 's3') {
       await storage.saveFilesInS3({
@@ -36,10 +25,12 @@ class UpdateProductImagesService {
       });
     }
 
+    const newImages = [...product.images, ...images];
+
     await Product.updateOne(
       { _id: product._id },
       {
-        images,
+        images: newImages,
         updated_at: new Date(),
       },
     );

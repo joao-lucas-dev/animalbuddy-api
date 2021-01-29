@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 
 import AuthenticateUserService from '../services/AuthenticateUserService';
+import ValidateTokenService from '../services/ValidateTokenService';
 
 const sessionsRouter = Router();
 
@@ -24,6 +25,24 @@ sessionsRouter.post(
     });
 
     return response.json({ user, token });
+  },
+);
+
+sessionsRouter.get(
+  '/validate/:token',
+  celebrate({
+    [Segments.PARAMS]: {
+      token: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { token } = request.params;
+
+    const validateTokenService = new ValidateTokenService();
+
+    await validateTokenService.execute(token);
+
+    return response.send();
   },
 );
 
