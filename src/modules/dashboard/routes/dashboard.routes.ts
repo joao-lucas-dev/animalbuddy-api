@@ -23,9 +23,11 @@ import CreateReviewService from '../services/CreateReviewService';
 import UpdateReviewImagesService from '../services/UpdateReviewImagesService';
 import UpdateReviewService from '../services/UpdateReviewService';
 import DeleteReviewService from '../services/DeleteReviewService';
-import UpdateOrderTrackingCodeService from '../services/UpdateOrderTrackingCodeService';
+import UpdateOrderService from '../services/UpdateOrderService';
 import DeleteImagesService from '../services/DeleteImagesService';
 import DeleteImagesDescriptionService from '../services/DeleteImagesDescriptionService';
+import UpdateReadOrderService from '../services/UpdateReadOrderService';
+import GetOrderService from '../services/GetOrderService';
 
 const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
@@ -390,6 +392,7 @@ dashboardRoutes.get(
         $project: {
           name: 1,
           surname: 1,
+          email: 1,
           city: 1,
           state: 1,
           country: 1,
@@ -408,6 +411,7 @@ dashboardRoutes.get(
         $project: {
           name: 1,
           surname: 1,
+          email: 1,
           city: 1,
           state: 1,
           country: 1,
@@ -838,6 +842,20 @@ dashboardRoutes.delete(
  */
 
 dashboardRoutes.get(
+  '/orders/notifications',
+  enseureAuthenticated,
+  async (request, response) => {
+    const orders = await Order.aggregate([
+      {
+        $match: { read: false },
+      },
+    ]);
+
+    return response.json(orders);
+  },
+);
+
+dashboardRoutes.get(
   '/orders',
   enseureAuthenticated,
   celebrate({
@@ -845,10 +863,11 @@ dashboardRoutes.get(
       page: Joi.number().required(),
       limit: Joi.number().required(),
       order: Joi.string().required(),
+      status: Joi.string().required(),
     },
   }),
   async (request, response) => {
-    const { page, limit, order } = request.query;
+    const { page, limit, order, status } = request.query;
 
     let newOrder = {};
 
@@ -866,57 +885,6 @@ dashboardRoutes.get(
       default:
         break;
     }
-
-    const orders = await Order.aggregate([
-      {
-        $lookup: {
-          from: 'customers',
-          localField: 'customer_id',
-          foreignField: '_id',
-          as: 'customer_info',
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          products: 1,
-          customer_id: 1,
-          status: 1,
-          totalPrice: 1,
-          order_number: 1,
-          customer_name: { $arrayElemAt: ['$customer_info.name', 0] },
-          customer_email: { $arrayElemAt: ['$customer_info.email', 0] },
-        },
-      },
-      {
-        $sort: {
-          ...newOrder,
-        },
-      },
-      {
-        $skip: Number(page) * Number(limit),
-      },
-      {
-        $limit: Number(limit),
-      },
-    ]);
-
-    return response.json(orders);
-  },
-);
-
-dashboardRoutes.get(
-  '/orders/status',
-  enseureAuthenticated,
-  celebrate({
-    [Segments.QUERY]: {
-      page: Joi.number().required(),
-      limit: Joi.number().required(),
-      status: Joi.string().required(),
-    },
-  }),
-  async (request, response) => {
-    const { page, limit, status } = request.query;
 
     const orders = await Order.aggregate([
       {
@@ -941,7 +909,15 @@ dashboardRoutes.get(
           totalPrice: 1,
           order_number: 1,
           customer_name: { $arrayElemAt: ['$customer_info.name', 0] },
+          customer_surname: { $arrayElemAt: ['$customer_info.surname', 0] },
           customer_email: { $arrayElemAt: ['$customer_info.email', 0] },
+          createdAt: 1,
+          read: 1,
+        },
+      },
+      {
+        $sort: {
+          ...newOrder,
         },
       },
       {
@@ -956,8 +932,75 @@ dashboardRoutes.get(
   },
 );
 
-dashboardRoutes.patch(
+dashboardRoutes.get(
   '/orders/:orderId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      orderId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { orderId } = request.params;
+
+    const orderIdFormatted = new ObjectID(orderId);
+
+    const getOrderService = new GetOrderService();
+
+    const order = await getOrderService.execute(orderIdFormatted);
+
+    return response.json(order);
+  },
+);
+
+dashboardRoutes.get(
+  '/orders/search/:externalNumber',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      externalNumber: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { externalNumber } = request.params;
+
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          externalNumber,
+        },
+      },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customer_id',
+          foreignField: '_id',
+          as: 'customer_info',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          products: 1,
+          customer_id: 1,
+          status: 1,
+          totalPrice: 1,
+          order_number: 1,
+          customer_name: { $arrayElemAt: ['$customer_info.name', 0] },
+          customer_surname: { $arrayElemAt: ['$customer_info.surname', 0] },
+          customer_email: { $arrayElemAt: ['$customer_info.email', 0] },
+          createdAt: 1,
+          read: 1,
+        },
+      },
+    ]);
+
+    return response.json(orders);
+  },
+);
+
+dashboardRoutes.patch(
+  '/orders/:orderId/cancel',
   enseureAuthenticated,
   celebrate({
     [Segments.PARAMS]: {
@@ -978,11 +1021,12 @@ dashboardRoutes.patch(
 );
 
 dashboardRoutes.patch(
-  '/orders/:orderId/tracking-code',
+  '/orders/:orderId',
   enseureAuthenticated,
   celebrate({
     [Segments.BODY]: {
-      tracking_code: Joi.string().required(),
+      tracking_code: Joi.string().allow('').required(),
+      externalNumber: Joi.string().allow('').required(),
     },
     [Segments.PARAMS]: {
       orderId: Joi.string().required(),
@@ -990,16 +1034,38 @@ dashboardRoutes.patch(
   }),
   async (request, response) => {
     const { orderId } = request.params;
-    const { tracking_code } = request.body;
+    const { tracking_code, externalNumber } = request.body;
 
-    const updateOrderTrackingCodeService = new UpdateOrderTrackingCodeService();
+    const updateOrderService = new UpdateOrderService();
 
     const orderIdFormatted = new ObjectID(orderId);
 
-    await updateOrderTrackingCodeService.execute({
+    await updateOrderService.execute({
       orderId: orderIdFormatted,
       tracking_code,
+      externalNumber,
     });
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.patch(
+  '/orders/:orderId/read',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      orderId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { orderId } = request.params;
+
+    const updateReadOrderService = new UpdateReadOrderService();
+
+    const orderIdFormatted = new ObjectID(orderId);
+
+    await updateReadOrderService.execute(orderIdFormatted);
 
     return response.send();
   },

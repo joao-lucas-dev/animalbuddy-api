@@ -20,6 +20,8 @@ export interface IOrder extends Document {
   payment_type: string;
   tracking_code: string;
   email_review_sent: boolean;
+  read: boolean;
+  externalNumber: string;
 }
 
 const orderSchema = new Schema(
@@ -62,6 +64,24 @@ const orderSchema = new Schema(
     email_review_sent: {
       type: Boolean,
       required: true,
+    },
+
+    read: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+
+    externalNumber: {
+      type: String,
+      required: false,
+      default: '',
+    },
+
+    email_tracking_code_sent: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   {

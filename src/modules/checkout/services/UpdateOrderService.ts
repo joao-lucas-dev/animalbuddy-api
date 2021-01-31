@@ -65,6 +65,7 @@ class UpdateOrderService {
       { _id: order[0]._id },
       {
         status: response.status,
+        read: false,
         updated_at: new Date(),
         payment_id: data.id,
         payment_type: response.payment_type_id,
