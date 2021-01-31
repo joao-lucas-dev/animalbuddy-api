@@ -1,1 +1,1 @@
-web: yarn start
+web: node dist/shared/server.js
