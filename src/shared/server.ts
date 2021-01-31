@@ -36,6 +36,6 @@ app.use((err: Error, request: Request, response: Response, _: NextFunction) => {
   });
 });
 
-app.listen(8081, () => {
+app.listen(process.env.PORT || 8081, () => {
   console.log('🚀 Server started on port 8081!');
 });
