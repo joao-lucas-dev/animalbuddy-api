@@ -49,11 +49,13 @@ const orderSchema = new Schema(
     payment_id: {
       type: String,
       required: false,
+      default: '',
     },
 
     payment_type: {
       type: String,
       required: false,
+      default: '',
     },
 
     tracking_code: {

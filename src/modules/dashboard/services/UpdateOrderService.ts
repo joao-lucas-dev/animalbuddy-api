@@ -94,7 +94,7 @@ class UpdateOrderService {
       {
         tracking_code,
         externalNumber,
-        email_tracking_code_sent: true,
+        email_tracking_code_sent: tracking_code !== '',
         updatedAt: new Date(),
       },
     );
