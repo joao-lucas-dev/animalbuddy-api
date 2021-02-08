@@ -2,17 +2,28 @@ import AppError from '@shared/errors/AppError';
 
 import Product, { IProduct } from '@modules/dashboard/schemas/Product';
 
+import formatImages from '../utils/images';
+import formatVariants from '../utils/variants';
+
 interface IResponse {
-  product: IProduct;
-  images_url: Array<string>;
+  title: string;
+  description: string;
+  seoDescription: string;
+  price: string;
+  oldPrice: string;
+  discount: string;
+  images: string;
+  createdAt: string;
+  slug: string;
+  reviews: any[];
 }
 
 class GetProductPageService {
-  async execute(productId: IProduct['_id']): Promise<IResponse> {
+  async execute(slug: IProduct['slug']): Promise<IResponse[]> {
     const product = await Product.aggregate([
       {
         $match: {
-          _id: productId,
+          slug,
         },
       },
       {
@@ -27,12 +38,15 @@ class GetProductPageService {
         $project: {
           title: 1,
           description: 1,
-          images: 1,
+          seoDescription: 1,
           price: 1,
           oldPrice: 1,
           discount: 1,
+          images: 1,
+          createdAt: 1,
           variants: 1,
-          reviews: '$reviews._id',
+          slug: 1,
+          reviews: '$reviews',
         },
       },
     ]);
@@ -41,18 +55,54 @@ class GetProductPageService {
       throw new AppError('Product not found.', 404);
     }
 
-    return {
-      product: product[0],
-      images_url: product[0].images
-        ? product[0].images.map((img: any) => {
-            if (process.env.STORAGE_DRIVER === 's3') {
-              return `https://images-all-products.s3.amazonaws.com/${img}`;
-            }
+    const newArrProducts = product.map((item) => {
+      const arrImages = formatImages(item.images);
 
-            return `${process.env.APP_API_URL}/images/${img}`;
-          })
-        : [],
-    };
+      const newVariants = formatVariants(item.variants, item.discount);
+
+      const reviewsCount = item.reviews.reduce(
+        (acc: number, itemReview: any) => {
+          if (itemReview.status === 'approved') return acc + 1;
+
+          return acc;
+        },
+        0,
+      );
+
+      return {
+        ...item,
+        imagesArray:
+          arrImages.length > 0
+            ? new Array(Math.ceil(arrImages.length / 3))
+                .fill()
+                .map((_) => arrImages.splice(0, 3))
+            : [],
+        priceString: item.price.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
+        oldPriceString: item.oldPrice.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
+        discountString: item.discount.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
+        reviewsCount,
+        averageReviews:
+          // eslint-disable-next-line
+            item.reviews.reduce((acc: number, itemAverageReview: any) => {
+            if (itemAverageReview.status === 'approved')
+              return acc + itemAverageReview.stars;
+
+            return acc;
+          }, 0) / reviewsCount,
+        variants: newVariants,
+      };
+    });
+
+    return newArrProducts[0];
   }
 }
 

@@ -29,6 +29,10 @@ class CreateProductService {
       throw new AppError('Product already created.', 404);
     }
 
+    const titleLower = title.toLocaleLowerCase();
+
+    const slug = titleLower.split(' ').join('-');
+
     const product = await Product.create({
       _id: new ObjectID(),
       title,
@@ -39,6 +43,7 @@ class CreateProductService {
       discount: oldPrice > price ? oldPrice - price : 0,
       product_url,
       seoDescription,
+      slug,
     });
 
     return product;

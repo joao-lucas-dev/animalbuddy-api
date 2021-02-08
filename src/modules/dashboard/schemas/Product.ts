@@ -18,6 +18,7 @@ export interface IProduct extends Document {
   variants: Array<IVariant>;
   product_url: string;
   seoDescription: string;
+  slug: string;
 }
 
 const productSchema = new Schema(
@@ -82,6 +83,12 @@ const productSchema = new Schema(
     seoDescription: {
       type: String,
       required: true,
+    },
+
+    slug: {
+      type: String,
+      required: false,
+      default: '',
     },
   },
   {

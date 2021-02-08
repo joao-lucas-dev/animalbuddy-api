@@ -4,7 +4,6 @@ import { IProduct } from './Product';
 
 export interface IReview extends Document {
   name: string;
-  email: string;
   stars: number;
   feedback: string;
   product_id: IProduct['_id'];
@@ -16,11 +15,6 @@ export interface IReview extends Document {
 const reviewSchema = new Schema(
   {
     name: {
-      type: String,
-      required: true,
-    },
-
-    email: {
       type: String,
       required: true,
     },

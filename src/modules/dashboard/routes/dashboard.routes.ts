@@ -719,27 +719,12 @@ dashboardRoutes.get(
   },
 );
 
-dashboardRoutes.get(
-  '/reviews/all/pending',
-  enseureAuthenticated,
-  async (request, response) => {
-    const reviews = await Review.aggregate([
-      {
-        $match: { status: 'pending' },
-      },
-    ]);
-
-    return response.json(reviews);
-  },
-);
-
 dashboardRoutes.post(
   '/products/:productId/reviews',
   enseureAuthenticated,
   celebrate({
     [Segments.BODY]: {
       name: Joi.string().required(),
-      email: Joi.string().required(),
       stars: Joi.number().required(),
       feedback: Joi.string().required(),
       state: Joi.string().required(),
@@ -749,7 +734,7 @@ dashboardRoutes.post(
     },
   }),
   async (request, response) => {
-    const { name, email, stars, feedback, state } = request.body;
+    const { name, stars, feedback, state } = request.body;
     const { productId } = request.params;
 
     const createReviewService = new CreateReviewService();
@@ -757,7 +742,6 @@ dashboardRoutes.post(
     const review = await createReviewService.execute({
       productId: new ObjectID(productId),
       name,
-      email,
       stars,
       feedback,
       state,

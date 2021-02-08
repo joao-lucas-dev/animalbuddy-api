@@ -30,6 +30,10 @@ class UpdateProductService {
       throw new AppError("Product doesn't found.", 404);
     }
 
+    const titleLower = title.toLocaleLowerCase();
+
+    const slug = titleLower.split(' ').join('-');
+
     await Product.updateOne(
       { _id: product._id },
       {
@@ -42,6 +46,7 @@ class UpdateProductService {
         discount: oldPrice > price ? Number((oldPrice - price).toFixed(2)) : 0,
         product_url,
         updated_at: new Date(),
+        slug,
       },
     );
   }

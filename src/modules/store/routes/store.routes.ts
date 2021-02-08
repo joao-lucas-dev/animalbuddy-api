@@ -7,6 +7,8 @@ import uploadConfig from '@config/upload';
 import Product from '@modules/dashboard/schemas/Product';
 import Review from '@modules/dashboard/schemas/Review';
 
+import countRangeParcentage from '../utils/reviews';
+
 import GetProductPageService from '../services/GetProductPageService';
 import CreateReviewPageService from '../services/CreateReviewPageService';
 import UpdateReviewImagesPageService from '../services/UpdateReviewImagesPageService';
@@ -59,6 +61,31 @@ storeRouter.get(
 
     const products = await Product.aggregate([
       {
+        $match: {
+          isActive: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'reviews',
+          localField: '_id',
+          foreignField: 'product_id',
+          as: 'reviews',
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          price: 1,
+          oldPrice: 1,
+          discount: 1,
+          images: 1,
+          createdAt: 1,
+          slug: 1,
+          reviews: '$reviews',
+        },
+      },
+      {
         $sort: {
           ...newOrder,
         },
@@ -73,13 +100,13 @@ storeRouter.get(
         $project: {
           _id: '$_id',
           title: '$title',
-          description: '$description',
           price: '$price',
           oldPrice: '$oldPrice',
           discount: '$discount',
-          variants: '$variants',
           images: '$images',
           createdAt: '$createdAt',
+          slug: '$slug',
+          reviews: '$reviews',
         },
       },
     ]);
@@ -94,9 +121,40 @@ storeRouter.get(
           return `${process.env.APP_API_URL}/images/${img}`;
         });
 
+        const reviewsCount = item.reviews.reduce(
+          (acc: number, itemReview: any) => {
+            if (itemReview.status === 'approved') return acc + 1;
+
+            return acc;
+          },
+          0,
+        );
+
         return {
           ...item,
           images_url: arrImages,
+          priceString: item.price.toLocaleString('pt-br', {
+            style: 'currency',
+            currency: 'BRL',
+          }),
+          oldPriceString: item.oldPrice.toLocaleString('pt-br', {
+            style: 'currency',
+            currency: 'BRL',
+          }),
+          discountString: item.discount.toLocaleString('pt-br', {
+            style: 'currency',
+            currency: 'BRL',
+          }),
+          imageName: arrImages.length > 0 ? arrImages[0].split('_')[1] : '',
+          reviewsCount,
+          averageReviews:
+            // eslint-disable-next-line
+            item.reviews.reduce((acc: number, itemAverageReview: any) => {
+              if (itemAverageReview.status === 'approved')
+                return acc + itemAverageReview.stars;
+
+              return acc;
+            }, 0) / reviewsCount,
         };
       }
 
@@ -108,24 +166,20 @@ storeRouter.get(
 );
 
 storeRouter.get(
-  '/products/:productId',
+  '/products/:slug',
   celebrate({
     [Segments.PARAMS]: {
-      productId: Joi.string().required(),
+      slug: Joi.string().required(),
     },
   }),
   async (request, response) => {
-    const { productId } = request.params;
+    const { slug } = request.params;
 
     const getProductPageService = new GetProductPageService();
 
-    const productIdFormatted = new ObjectID(productId);
+    const product = await getProductPageService.execute(slug);
 
-    const { product, images_url } = await getProductPageService.execute(
-      productIdFormatted,
-    );
-
-    return response.json({ product, images_url });
+    return response.json(product);
   },
 );
 
@@ -140,13 +194,17 @@ storeRouter.get(
       page: Joi.number().required(),
       limit: Joi.number().required(),
     },
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+    },
   }),
   async (request, response) => {
     const { page, limit } = request.query;
+    const { productId } = request.params;
 
     const reviews = await Review.aggregate([
       {
-        $match: { status: 'approved' },
+        $match: { product_id: new ObjectID(productId), status: 'approved' },
       },
       {
         $sort: {
@@ -172,6 +230,12 @@ storeRouter.get(
       },
     ]);
 
+    const rangeFivePercentage = countRangeParcentage(reviews, 5);
+    const rangeFourPercentage = countRangeParcentage(reviews, 4);
+    const rangeThreePercentage = countRangeParcentage(reviews, 3);
+    const rangeTwoPercentage = countRangeParcentage(reviews, 2);
+    const rangeOnePercentage = countRangeParcentage(reviews, 1);
+
     return response.json({
       reviews: reviews.map((item) => {
         if (item.images) {
@@ -191,6 +255,13 @@ storeRouter.get(
 
         return item;
       }),
+      rangeParcentage: {
+        five: rangeFivePercentage,
+        four: rangeFourPercentage,
+        three: rangeThreePercentage,
+        two: rangeTwoPercentage,
+        one: rangeOnePercentage,
+      },
     });
   },
 );
@@ -200,7 +271,6 @@ storeRouter.post(
   celebrate({
     [Segments.BODY]: {
       name: Joi.string().required(),
-      email: Joi.string().email().required(),
       stars: Joi.number().required(),
       feedback: Joi.string().required(),
       state: Joi.string().required(),
@@ -210,7 +280,7 @@ storeRouter.post(
     },
   }),
   async (request, response) => {
-    const { name, email, stars, feedback, state } = request.body;
+    const { name, stars, feedback, state } = request.body;
     const { productId } = request.params;
 
     const createReviewPageService = new CreateReviewPageService();
@@ -218,7 +288,6 @@ storeRouter.post(
     const review = await createReviewPageService.execute({
       productId: new ObjectID(productId),
       name,
-      email,
       stars,
       feedback,
       state,
