@@ -27,7 +27,6 @@ class CreateReviewService {
 
     const review = await Review.create({
       name,
-      email,
       stars,
       feedback,
       product_id: productId,

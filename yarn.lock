@@ -3416,10 +3416,10 @@ meow@^3.3.0:
     redent "^1.0.0"
     trim-newlines "^1.0.0"
 
-mercadopago@^1.5.2:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/mercadopago/-/mercadopago-1.5.2.tgz#00d5f1f7fa4e6434af83d67333a2a0d1a7bd7452"
-  integrity sha512-4KaGh+uvjfZRxg4fH/omArZ7poC6LuEjoLPU0ua6+tM5g9L60evD+XU58GcjX441o7n6UdT3095HQB24/hYCpg==
+mercadopago@^1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/mercadopago/-/mercadopago-1.5.3.tgz#290dd6148c2f952d1d7bc6dace774b498e51e752"
+  integrity sha512-jZ9C/pO6HjvdcB98f9BGVbguhZ9sp3H/y9kpzSkBklhb+7qpSeQUGbwne0GEHjjyWb/pe9S4l9Yy4UFiX/LP3A==
   dependencies:
     ajv "4.10.3"
     bluebird "3.4.7"

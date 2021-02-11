@@ -719,6 +719,18 @@ dashboardRoutes.get(
   },
 );
 
+dashboardRoutes.get(
+  '/reviews/all/pending',
+  enseureAuthenticated,
+  async (request, response) => {
+    const reviews = await Review.find({
+      status: 'pending',
+    });
+
+    return response.json(reviews);
+  },
+);
+
 dashboardRoutes.post(
   '/products/:productId/reviews',
   enseureAuthenticated,
@@ -726,8 +738,8 @@ dashboardRoutes.post(
     [Segments.BODY]: {
       name: Joi.string().required(),
       stars: Joi.number().required(),
-      feedback: Joi.string().required(),
       state: Joi.string().required(),
+      feedback: Joi.string().required(),
     },
     [Segments.PARAMS]: {
       productId: Joi.string().required(),
