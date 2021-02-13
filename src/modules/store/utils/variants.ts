@@ -33,7 +33,7 @@ function formatVariantsWithPrice(
   const valueArrSplitted = value.split('- ');
 
   return {
-    name: valueArrSplitted[0].replace(' ', ''),
+    name: valueArrSplitted[0],
     price: Number(valueArrSplitted[1]),
     priceString: Number(valueArrSplitted[1]).toLocaleString('pt-br', {
       style: 'currency',
