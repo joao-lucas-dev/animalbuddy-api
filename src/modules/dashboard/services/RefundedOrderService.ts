@@ -6,7 +6,7 @@ import Mail from '@shared/lib/Mail';
 import SESMail from '@shared/lib/SESMail';
 import Order, { IOrder } from '@modules/checkout/schemas/Order';
 
-class CancelOrderService {
+class RefundedOrderService {
   async execute(orderId: IOrder['_id']): Promise<void> {
     const order = await Order.aggregate([
       {
@@ -48,15 +48,15 @@ class CancelOrderService {
       throw new AppError("Order doesn't found.", 404);
     }
 
-    await Order.updateOne(
-      { _id: orderId },
-      {
-        status: 'cancelled',
-        updated_at: new Date(),
-      },
-    );
-
     if (order[0].status === 'approved') {
+      await Order.updateOne(
+        { _id: orderId },
+        {
+          status: 'refunded',
+          updated_at: new Date(),
+        },
+      );
+
       let mail = null;
 
       if (process.env.MAIL_DRIVER === 'ses') {
@@ -69,7 +69,7 @@ class CancelOrderService {
         __dirname,
         '..',
         'views',
-        'orderCancelled.hbs',
+        'orderRefunded.hbs',
       );
 
       await mail.sendMail({
@@ -108,4 +108,4 @@ class CancelOrderService {
   }
 }
 
-export default CancelOrderService;
+export default RefundedOrderService;

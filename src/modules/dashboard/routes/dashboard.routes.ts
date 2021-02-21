@@ -18,7 +18,7 @@ import DeleteProductService from '../services/DeleteProductService';
 import GetProductService from '../services/GetProductService';
 import UpdateCustomerService from '../services/UpdateCustomerService';
 import DeleteCustomerService from '../services/DeleteCustomerService';
-import CancelOrderService from '../services/CancelOrderService';
+import RefundedOrderService from '../services/RefundedOrderService';
 import CreateReviewService from '../services/CreateReviewService';
 import UpdateReviewImagesService from '../services/UpdateReviewImagesService';
 import UpdateReviewService from '../services/UpdateReviewService';
@@ -191,6 +191,7 @@ dashboardRoutes.put(
       isActive: Joi.bool().required(),
       variants: Joi.array().required(),
       product_url: Joi.string().required(),
+      seoDescription: Joi.string().required(),
     },
     [Segments.PARAMS]: {
       productId: Joi.string().required(),
@@ -996,7 +997,7 @@ dashboardRoutes.get(
 );
 
 dashboardRoutes.patch(
-  '/orders/:orderId/cancel',
+  '/orders/:orderId/refunded',
   enseureAuthenticated,
   celebrate({
     [Segments.PARAMS]: {
@@ -1006,11 +1007,11 @@ dashboardRoutes.patch(
   async (request, response) => {
     const { orderId } = request.params;
 
-    const cancelOrderService = new CancelOrderService();
+    const refundedOrderService = new RefundedOrderService();
 
     const orderIdFormatted = new ObjectID(orderId);
 
-    await cancelOrderService.execute(orderIdFormatted);
+    await refundedOrderService.execute(orderIdFormatted);
 
     return response.send();
   },

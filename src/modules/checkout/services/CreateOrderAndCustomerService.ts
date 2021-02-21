@@ -1,5 +1,7 @@
 import { ObjectID } from 'mongodb';
 
+import RedisCache from '@shared/lib/RedisCache';
+
 import Customer from '../schemas/Customer';
 import Order from '../schemas/Order';
 
@@ -38,7 +40,9 @@ interface IRequest {
 }
 
 class CreateOrderAndCustomerService {
-  async execute({ items, payer, orderId }: IRequest): Promise<string> {
+  async execute({ items, payer, orderId = '' }: IRequest): Promise<string> {
+    const redisCache = new RedisCache();
+
     const customer = await Customer.findOne({
       $or: [
         {
@@ -52,25 +56,31 @@ class CreateOrderAndCustomerService {
 
     const newOrderId = new ObjectID();
 
+    const payerData = {
+      name: payer.name,
+      surname: payer.surname,
+      email: payer.email,
+      phone: payer.phone,
+      cpf: payer.cpf,
+      zipCode: payer.zipCode,
+      street: payer.street,
+      number: payer.number,
+      complement: payer.complement,
+      city: payer.city,
+      state: payer.state,
+      country: payer.country,
+    };
+
     if (!customer) {
       const newCustomerId = new ObjectID();
 
       await Customer.create({
         _id: newCustomerId,
-        name: payer.name,
-        surname: payer.surname,
-        email: payer.email,
-        phone: payer.phone,
-        cpf: payer.cpf,
-        zipCode: payer.zipCode,
-        street: payer.street,
-        number: payer.number,
-        complement: payer.complement,
-        city: payer.city,
-        state: payer.state,
-        country: payer.country,
+        ...payerData,
         orders: [newOrderId],
       });
+
+      await redisCache.save(`payer:${newOrderId}`, payerData);
 
       const arrProducts = items.map((item) => {
         return {
@@ -104,18 +114,7 @@ class CreateOrderAndCustomerService {
       await Customer.updateOne(
         { _id: customer._id },
         {
-          name: payer.name,
-          surname: payer.surname,
-          email: payer.email,
-          phone: payer.phone,
-          cpf: payer.cpf,
-          zipCode: payer.zipCode,
-          street: payer.street,
-          number: payer.number,
-          complement: payer.complement,
-          city: payer.city,
-          state: payer.state,
-          country: payer.country,
+          ...payerData,
           orders:
             orderId === '' ? [...customer.orders, newOrderId] : customer.orders,
           updatedAt: new Date(),
@@ -123,6 +122,8 @@ class CreateOrderAndCustomerService {
       );
 
       if (orderId === '') {
+        await redisCache.save(`payer:${newOrderId}`, payerData);
+
         const arrProducts = items.map((item) => {
           return {
             _id: new ObjectID(),
@@ -151,6 +152,10 @@ class CreateOrderAndCustomerService {
           }, 0),
           email_review_sent: false,
         });
+      } else {
+        await redisCache.invalidate(`payer:${orderId}`);
+
+        await redisCache.save(`payer:${orderId}`, payerData);
       }
     }
 

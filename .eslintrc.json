@@ -33,6 +33,7 @@
       "argsIgnorePattern": "_"
     }],
     "no-underscore-dangle": "off",
+    "no-restricted-syntax": "off",
     "@typescript-eslint/naming-convention": [
       "error",
       {

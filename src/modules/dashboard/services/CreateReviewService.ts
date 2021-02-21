@@ -31,7 +31,7 @@ class CreateReviewService {
       feedback,
       product_id: productId,
       status: 'approved',
-      state,
+      state: state.toLocaleUpperCase(),
     });
 
     return review;

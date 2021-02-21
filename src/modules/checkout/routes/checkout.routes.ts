@@ -6,6 +6,7 @@ import Order from '../schemas/Order';
 import PaymentService from '../services/PaymentService';
 import UpdateOrderService from '../services/UpdateOrderService';
 import CreateOrderAndCustomerService from '../services/CreateOrderAndCustomerService';
+import GetInfosService from '../services/GetInfosService';
 
 const checkoutRouter = Router();
 
@@ -33,6 +34,7 @@ checkoutRouter.get('/abandoned-cart/:orderId', async (request, response) => {
       {
         $match: {
           _id: new ObjectID(orderId),
+          status: 'waiting_payment',
         },
       },
       {
@@ -61,11 +63,21 @@ checkoutRouter.get('/abandoned-cart/:orderId', async (request, response) => {
           model: product.model,
         };
       });
-      payer = orderWithCustomer[0].customer;
+      payer = { ...orderWithCustomer[0].customer, orderIdString: orderId };
     }
   }
 
   return response.json({ cart, payer });
+});
+
+checkoutRouter.get('/infos/:orderId', async (request, response) => {
+  const { orderId } = request.params;
+
+  const getInfosService = new GetInfosService();
+
+  const payer = await getInfosService.execute(orderId);
+
+  return response.json({ payer });
 });
 
 checkoutRouter.post('/webhook', async (request, response) => {

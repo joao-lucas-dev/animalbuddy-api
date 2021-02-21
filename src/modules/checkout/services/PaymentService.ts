@@ -1,5 +1,11 @@
 import mercadopago from 'mercadopago';
 
+import RedisCache from '@shared/lib/RedisCache';
+
+import { ObjectID } from 'mongodb';
+import AppError from '@shared/errors/AppError';
+import Order from '../schemas/Order';
+
 interface IItem {
   id: string;
   title: string;
@@ -37,6 +43,14 @@ interface IResponse {
 
 class PaymentService {
   async execute({ items, payer, orderId }: IRequest): Promise<IResponse> {
+    const redisCache = new RedisCache();
+
+    const order = Order.findById(new ObjectID(orderId));
+
+    if (!order) {
+      throw new AppError('Order not found');
+    }
+
     mercadopago.configure({
       access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
     });
@@ -91,6 +105,8 @@ class PaymentService {
     };
 
     const { response } = await mercadopago.preferences.create(preference);
+
+    await redisCache.invalidate(`payer:${orderId}`);
 
     return {
       init_point: response.init_point,

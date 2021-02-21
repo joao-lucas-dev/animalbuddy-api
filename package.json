@@ -9,6 +9,7 @@
     "start": "ts-node dist/shared/server.js"
   },
   "dependencies": {
+    "@types/ioredis": "^4.19.4",
     "aws-sdk": "^2.824.0",
     "bcryptjs": "^2.4.3",
     "celebrate": "^13.0.4",
@@ -19,6 +20,7 @@
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
     "handlebars": "^4.7.6",
+    "ioredis": "^4.22.0",
     "jsonwebtoken": "^8.5.1",
     "mercadopago": "^1.5.3",
     "mime": "^2.4.7",
