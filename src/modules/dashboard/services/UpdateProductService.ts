@@ -11,6 +11,7 @@ interface IRequest {
   isActive: IProduct['isActive'];
   variants: IProduct['variants'];
   product_url: IProduct['product_url'];
+  seoDescription: IProduct['seoDescription'];
 }
 
 class UpdateProductService {
@@ -23,6 +24,7 @@ class UpdateProductService {
     isActive,
     variants,
     product_url,
+    seoDescription,
   }: IRequest): Promise<void> {
     const product = await Product.findById(productId);
 
@@ -47,6 +49,7 @@ class UpdateProductService {
         product_url,
         updated_at: new Date(),
         slug,
+        seoDescription,
       },
     );
   }

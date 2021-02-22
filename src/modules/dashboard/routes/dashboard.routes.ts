@@ -206,6 +206,7 @@ dashboardRoutes.put(
       isActive,
       variants,
       product_url,
+      seoDescription,
     } = request.body;
 
     const { productId } = request.params;
@@ -221,6 +222,7 @@ dashboardRoutes.put(
       isActive,
       variants,
       product_url,
+      seoDescription,
     });
 
     return response.send();
