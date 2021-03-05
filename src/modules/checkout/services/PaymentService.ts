@@ -66,7 +66,7 @@ class PaymentService {
           id: item.id,
           picture_url: item.picture_url,
           title: item.title,
-          description: item.description,
+          description: item.description.substring(0, 254),
           quantity: item.quantity,
           currency_id: 'BRL',
           unit_price: item.unit_price,
