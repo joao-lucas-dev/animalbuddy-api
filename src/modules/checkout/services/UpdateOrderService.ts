@@ -72,15 +72,15 @@ class UpdateOrderService {
       },
     );
 
+    let mail = null;
+
+    if (process.env.MAIL_DRIVER === 'ses') {
+      mail = new SESMail();
+    } else {
+      mail = new Mail();
+    }
+
     if (response.status === 'approved') {
-      let mail = null;
-
-      if (process.env.MAIL_DRIVER === 'ses') {
-        mail = new SESMail();
-      } else {
-        mail = new Mail();
-      }
-
       const orderConfirmedTemplate = path.resolve(
         __dirname,
         '..',
@@ -95,12 +95,12 @@ class UpdateOrderService {
         payment_method = 'Cartão';
         isCard = true;
       } else {
-        payment_method = 'Boleto';
+        payment_method = 'Boleto/Lotérica';
       }
 
       await mail.sendMail({
         to: order[0].customer_email,
-        subject: 'Seu pedido confirmado!',
+        subject: 'Seu pedido foi confirmado!',
         templateData: {
           file: orderConfirmedTemplate,
           variables: {
@@ -135,6 +135,52 @@ class UpdateOrderService {
             payment_method,
             isCard,
             last_four_digits: response.card.last_four_digits,
+          },
+        },
+      });
+    } else if (response.status === 'pending') {
+      const orderPendingTemplate = path.resolve(
+        __dirname,
+        '..',
+        'views',
+        'orderPending.hbs',
+      );
+
+      await mail.sendMail({
+        to: order[0].customer_email,
+        subject: 'Seu pedido está pendente!',
+        templateData: {
+          file: orderPendingTemplate,
+          variables: {
+            id_order: order[0]._id,
+            name: order[0].customer_name,
+            products: order[0].products.map((item: any) => {
+              return {
+                ...item,
+                priceFormatted: item.price.toLocaleString('pt-br', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }),
+              };
+            }),
+            subtotal: order[0].totalPrice.toLocaleString('pt-br', {
+              style: 'currency',
+              currency: 'BRL',
+            }),
+            total: order[0].totalPrice.toLocaleString('pt-br', {
+              style: 'currency',
+              currency: 'BRL',
+            }),
+            customer_street: order[0].customer_street,
+            customer_number: order[0].customer_number,
+            customer_complement:
+              order[0].customer_complement === ''
+                ? null
+                : order[0].customer_complement,
+            customer_city: order[0].customer_city,
+            customer_state: order[0].customer_state,
+            customer_country: order[0].customer_country,
+            payment_method: 'Boleto/Lotérica',
           },
         },
       });

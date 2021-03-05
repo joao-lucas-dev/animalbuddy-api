@@ -1,0 +1,282 @@
+<style>
+  .message-content {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    max-width: 600px;
+    padding: 10px;
+    margin: auto;
+  }
+
+  .logo {
+    width: 134px;
+  }
+
+  .top {
+    margin-bottom: 40px;
+  }
+
+  .top span {
+    display: block;
+    color: #999;
+    font-size: 16px;
+    margin: 20px 0 0;
+  }
+
+  .top h2 {
+    color: #000;
+    font-size: 24px;
+    font-weight: normal;
+    margin: 3px 0 10px 0;
+  }
+
+  .top p {
+    color: #777;
+    font-size: 16px;
+    line-height: 150%;
+    margin: 0;
+    text-align: justify;
+  }
+
+  .area-cart h3 {
+    color: #000;
+    font-size: 20px;
+    margin: 0 0 25px;
+    font-weight: normal;
+  }
+
+  .area-cart .products {
+    border-bottom: 1px solid#e5e5e5;
+  }
+
+  .area-cart .products .product {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 1px 15px;
+  }
+
+  .area-cart .products .product-name {
+    width: 80%;
+  }
+
+  .area-cart .products .product-name h4 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #555;
+    padding: 0;
+    margin: 0;
+  }
+
+  .area-cart .products .product-name span {
+    font-size: 14px;
+    color: #999;
+  }
+
+  .area-cart .products .product-price span {
+    font-size: 16px;
+    color: #555;
+    line-height: 150%;
+    font-weight: 600;
+    margin: 0 0 0 15px;
+  }
+
+  .area-cart .area-price-info {
+    border-bottom: 1px solid#e5e5e5;
+    padding: 15px 1px;
+  }
+
+  .area-cart .area-price-info .subtotal,
+  .area-cart .area-price-info .frete {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 1px 15px;
+  }
+
+  .area-cart .area-price-info .subtotal .left span,
+  .area-cart .area-price-info .frete .left span {
+    color: #777;
+    font-size: 16px;
+  }
+
+  .area-cart .area-price-info .subtotal .right span,
+  .area-cart .area-price-info .frete .right span {
+    color: #555;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .area-cart .area-total {
+    padding: 15px 1px;
+  }
+
+  .area-cart .area-total .total {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px 1px 15px;
+  }
+
+  .area-cart .area-total .total .left span {
+    color: #777;
+    font-size: 16px;
+  }
+
+  .area-cart .area-total .total .right span {
+    color: #555;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .customer-infos .address {
+    margin-top: 80px;
+  }
+
+  .customer-infos .address h3 {
+    font-size: 20px;
+    margin: 0 0 25px;
+    font-weight: normal;
+  }
+
+  .customer-infos .address h4,
+  .customer-infos .payment h4 {
+    font-size: 16px;
+    margin: 0 0 5px;
+    font-weight: 500;
+    color: #555;
+  }
+
+  .customer-infos .address p {
+    font-size: 16px;
+    margin: 0;
+    line-height: 150%;
+    color: #777;
+  }
+
+  .customer-infos .payment {
+    margin-top: 20px;
+  }
+
+  .customer-infos .payment span {
+    font-size: 16px;
+    color: #777;
+  }
+
+  .footer {
+    padding: 35px;
+    border-top: 1px solid#e5e5e5;
+    margin-top: 40px;
+  }
+
+  .footer p {
+    color: #999;
+    line-height: 150%;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .footer p a {
+    text-decoration: none;
+    font-size: 14px;
+    color: #1990C6;
+  }
+</style>
+
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; padding: 10px; margin: auto;">
+  <img style="width: 180px;" src="https://animalbuddy-public.s3.amazonaws.com/logo.png">
+
+  <div style="margin-bottom: 40px;">
+    <span style="display: block; color: #999; font-size: 16px; margin: 20px 0 0;">IDENTIFICADOR DO PEDIDO #{{id_order}}</span>
+    <h2 style="color: #000; font-size: 24px; font-weight: normal; margin: 3px 0 10px 0;">Seu pedido está pendente!</h2>
+    <p style="color: #777; font-size: 16px; line-height: 150%; margin: 0; text-align: justify;">Olá, {{name}}. Ainda não identidicamos o pagamento do Boleto/Lotérica. Caso já tenha pago, ignore este e-mail.</p>
+  </div>
+
+  <div style="color: #000; font-size: 20px; margin: 0 0 25px; font-weight: normal;">
+    <h3>Resumo dos pedidos</h3>
+
+    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+      {{#each products}}
+        <tr style="width: 100%; border-bottom: 1px solid #eee;">
+          <td style="padding-top: 20px; padding-bottom: 20px;">
+            <img src="{{image_url}}" style="width: 60px; margin-right: 20px">
+          </td>
+          <td style="padding-top: 20px; padding-bottom: 20px; padding-right: 20px; width: 100%;">
+            <h4 style="font-size: 16px; font-weight: 600; line-height: 1.4; color: #555; padding: 0; margin: 0;">{{name}} x{{qtd}}</h4>
+          </td>
+          <td style="padding-top: 20px; padding-bottom: 20px;">
+            <p style="color: #555; line-height: 150%; font-size: 16px; font-weight: 600; text-align: right;">{{priceFormatted}}</p>
+          </td>
+        </tr>
+      {{/each}}
+    </table>
+
+    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+      <tbody style="border-bottom: 2px solid #eee;">
+        <tr style="width: 100%;">
+          <td style="color: #777; font-size: 16px; padding-top: 20px; width: 100%;">
+            <span>Subtotal</span>
+          </td>
+          <td style="color: #555; font-size: 16px; padding-top: 20px; font-weight: 600; text-align: right;">
+            <span>{{subtotal}}</span>
+          </td>
+        </tr>
+
+        <tr style="width: 100%;">
+          <td style="color: #777; font-size: 16px; padding-top: 10px; padding-bottom: 20px; width: 100%;">
+            <span>Frete - Grátis</span>
+          </td>
+          <td style="color: #555; font-size: 16px; padding-top: 10px; padding-bottom: 20px; font-weight: 600; text-align: right;">
+            <span>R$ 0,00</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+      <tr style="width: 100%;">
+        <td style="color: #777; font-size: 16px; padding-top: 20px; width: 100%;">
+          <span>Total</span>
+        </td>
+        <td style="color: #777; font-size: 24px; font-weight: 600; padding-top: 20px; text-align:right;">
+          <span>{{total}}</span>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div>
+    <div style="margin-top: 80px;">
+      <h3 style="font-size: 20px; margin: 0 0 25px; font-weight: normal;">Informações do cliente</h3>
+
+      <h4 style="font-size: 16px; margin: 0 0 5px; font-weight: 500; color: #555;">Endereço de entrega</h4>
+      <p style="font-size: 16px; margin: 0; line-height: 150%; color: #777;">
+        {{customer_street}}, {{customer_number}} <br/>
+        {{#if customer_complement }}
+        {{customer_complement}} <br/>
+        {{/if}}
+        {{customer_city}} - {{customer_state}} <br />
+        {{customer_country}}
+      </p>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <h4 style="font-size: 16px; margin: 0 0 5px; font-weight: 500; color: #555;">Forma de Pagamento</h4>
+
+      <span style="font-size: 16px; color: #777;">
+        {{payment_method}}
+      </span>
+    </div>
+  </div>
+
+  <div style="padding: 35px; border-top: 1px solid#e5e5e5; margin-top: 40px;">
+    <center>
+      <p style="color: #999; line-height: 150%; font-size: 14px; margin: 0;">
+        Se você tiver alguma dúvida, entre em contato
+        conosco pelo e‑mail <a style="text-decoration: none; font-size: 14px; color: #7239F2;" href="mailto:contato@animalbuddy.com.br">contato@animalbuddy.com.br</a>
+      </p>
+    </center>
+  </div>
+</div>

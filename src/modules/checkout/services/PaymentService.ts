@@ -57,9 +57,9 @@ class PaymentService {
 
     const preference = {
       back_urls: {
-        success: 'https://www.animalbuddy.com.br',
+        success: 'https://www.animalbuddy.com.br/obrigado',
         failure: 'https://www.animalbuddy.com.br',
-        pending: 'https://www.animalbuddy.com.br',
+        pending: 'https://www.animalbuddy.com.br/obrigado',
       },
       items: items.map((item) => {
         return {

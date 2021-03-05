@@ -34,7 +34,7 @@ class UpdateProductService {
 
     const titleLower = title.toLocaleLowerCase();
 
-    const slug = titleLower.split(' ').join('-');
+    const slug = titleLower.normalize('NFD').split(' ').join('-');
 
     await Product.updateOne(
       { _id: product._id },
