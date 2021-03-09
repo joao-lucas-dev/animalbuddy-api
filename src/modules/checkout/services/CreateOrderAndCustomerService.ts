@@ -6,7 +6,7 @@ import Customer from '../schemas/Customer';
 import Order from '../schemas/Order';
 
 interface IProduct {
-  productId: string;
+  _id: string;
   title: string;
   slug: string;
   imageUrl: string;
@@ -85,7 +85,7 @@ class CreateOrderAndCustomerService {
       const arrProducts = items.map((item) => {
         return {
           _id: new ObjectID(),
-          product_id: new ObjectID(item.productId),
+          product_id: new ObjectID(item._id),
           name: item.title,
           slug: item.slug,
           qtd: item.qtd,
@@ -127,7 +127,7 @@ class CreateOrderAndCustomerService {
         const arrProducts = items.map((item) => {
           return {
             _id: new ObjectID(),
-            product_id: new ObjectID(item.productId),
+            product_id: new ObjectID(item._id),
             name: item.title,
             slug: item.slug,
             qtd: item.qtd,
