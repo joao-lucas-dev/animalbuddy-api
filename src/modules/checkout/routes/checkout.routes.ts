@@ -7,6 +7,7 @@ import PaymentService from '../services/PaymentService';
 import UpdateOrderService from '../services/UpdateOrderService';
 import CreateOrderAndCustomerService from '../services/CreateOrderAndCustomerService';
 import GetInfosService from '../services/GetInfosService';
+import GetTotalPriceService from '../services/GetTotalPriceService';
 
 const checkoutRouter = Router();
 
@@ -78,6 +79,16 @@ checkoutRouter.get('/infos/:orderId', async (request, response) => {
   const payer = await getInfosService.execute(orderId);
 
   return response.json({ payer });
+});
+
+checkoutRouter.get('/order/:orderId/totalprice', async (request, response) => {
+  const { orderId } = request.params;
+
+  const getTotalPriceService = new GetTotalPriceService();
+
+  const totalPrice = await getTotalPriceService.execute(orderId);
+
+  return response.json({ totalPrice });
 });
 
 checkoutRouter.post('/webhook', async (request, response) => {

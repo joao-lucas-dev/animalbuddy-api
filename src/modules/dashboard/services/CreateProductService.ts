@@ -31,7 +31,11 @@ class CreateProductService {
 
     const titleLower = title.toLocaleLowerCase();
 
-    const slug = titleLower.normalize('NFD').split(' ').join('-');
+    const slug = titleLower
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .split(' ')
+      .join('-');
 
     const product = await Product.create({
       _id: new ObjectID(),

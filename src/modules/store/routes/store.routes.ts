@@ -266,6 +266,122 @@ storeRouter.get(
   },
 );
 
+storeRouter.get(
+  '/products/:productId/reviews/ranges',
+  celebrate({
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { productId } = request.params;
+
+    const reviews = await Review.aggregate([
+      {
+        $match: { product_id: new ObjectID(productId), status: 'approved' },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          stars: 1,
+          state: 1,
+          images: 1,
+          feedback: 1,
+          updatedAt: 1,
+        },
+      },
+    ]);
+
+    const rangeFivePercentage = countRangeParcentage(reviews, 5);
+    const rangeFourPercentage = countRangeParcentage(reviews, 4);
+    const rangeThreePercentage = countRangeParcentage(reviews, 3);
+    const rangeTwoPercentage = countRangeParcentage(reviews, 2);
+    const rangeOnePercentage = countRangeParcentage(reviews, 1);
+
+    return response.json({
+      rangeParcentage: {
+        five: rangeFivePercentage,
+        four: rangeFourPercentage,
+        three: rangeThreePercentage,
+        two: rangeTwoPercentage,
+        one: rangeOnePercentage,
+      },
+    });
+  },
+);
+
+storeRouter.get(
+  '/products/:productId/reviews/stars/:stars',
+  celebrate({
+    [Segments.QUERY]: {
+      page: Joi.number().required(),
+      limit: Joi.number().required(),
+    },
+    [Segments.PARAMS]: {
+      productId: Joi.string().required(),
+      stars: Joi.number().required(),
+    },
+  }),
+  async (request, response) => {
+    const { page, limit } = request.query;
+    const { productId, stars } = request.params;
+
+    const reviews = await Review.aggregate([
+      {
+        $match: {
+          product_id: new ObjectID(productId),
+          status: 'approved',
+          stars,
+        },
+      },
+      {
+        $sort: {
+          updatedAt: -1,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          stars: 1,
+          state: 1,
+          images: 1,
+          feedback: 1,
+          updatedAt: 1,
+        },
+      },
+    ]);
+
+    return response.json({
+      reviews: reviews.map((item) => {
+        if (item.images) {
+          const arrImages = item.images.map((img: any) => {
+            if (process.env.STORAGE_DRIVER === 's3') {
+              return `https://reviews-images.s3.amazonaws.com/${img}`;
+            }
+
+            return `${process.env.APP_API_URL}/images/${img}`;
+          });
+
+          return {
+            ...item,
+            images_url: arrImages,
+          };
+        }
+
+        return item;
+      }),
+    });
+  },
+);
+
 storeRouter.post(
   '/products/:productId/reviews',
   celebrate({

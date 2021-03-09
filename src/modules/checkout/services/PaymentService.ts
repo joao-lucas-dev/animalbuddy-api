@@ -56,10 +56,11 @@ class PaymentService {
     });
 
     const preference = {
+      auto_return: 'approved',
       back_urls: {
         success: 'https://www.animalbuddy.com.br/obrigado',
         failure: 'https://www.animalbuddy.com.br',
-        pending: 'https://www.animalbuddy.com.br/obrigado',
+        pending: 'https://www.animalbuddy.com.br',
       },
       items: items.map((item) => {
         return {
