@@ -253,6 +253,8 @@ dashboardRoutes.patch(
       images,
     });
 
+    response.header('Access-Control-Allow-Origin', '*');
+
     return response.json(product);
   },
 );
