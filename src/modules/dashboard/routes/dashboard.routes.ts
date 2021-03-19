@@ -253,11 +253,6 @@ dashboardRoutes.patch(
       images,
     });
 
-    response.header(
-      'Access-Control-Allow-Origin',
-      'https://dashboard.animalbuddy.com.br',
-    );
-
     return response.json(product);
   },
 );
