@@ -17,22 +17,7 @@ import '@shared/database';
 
 const app = express();
 
-const whitelist = [
-  'https://animalbuddy.com.br/',
-  'https://dashboard.animalbuddy.com.br/',
-];
-
-const corsOptions = {
-  origin(origin: any, callback: any) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 app.use(routes);
 
