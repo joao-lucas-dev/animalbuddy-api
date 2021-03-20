@@ -1,5 +1,4 @@
 import AppError from '@shared/errors/AppError';
-import { format } from 'date-fns';
 
 import Review, { IReview } from '../schemas/Review';
 
@@ -22,6 +21,9 @@ class UpdateReviewService {
         {
           createdAt: new Date(date),
           updatedAt: new Date(),
+        },
+        {
+          timestamps: false,
         },
       );
     } else {
