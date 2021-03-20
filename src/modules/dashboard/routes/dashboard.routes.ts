@@ -776,11 +776,13 @@ dashboardRoutes.patch(
   }),
   async (request, response) => {
     const { reviewId } = request.params;
+    const { date } = request.body;
 
     const updateReviewService = new UpdateReviewService();
 
     await updateReviewService.execute({
       reviewId: new ObjectID(reviewId),
+      date,
     });
 
     return response.send();

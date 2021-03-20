@@ -1,26 +1,38 @@
 import AppError from '@shared/errors/AppError';
+import { format } from 'date-fns';
 
 import Review, { IReview } from '../schemas/Review';
 
 interface IRequest {
   reviewId: IReview['_id'];
+  date?: string;
 }
 
 class UpdateReviewService {
-  async execute({ reviewId }: IRequest): Promise<void> {
+  async execute({ reviewId, date = '' }: IRequest): Promise<void> {
     const review = await Review.findById(reviewId);
 
     if (!review) {
       throw new AppError("Review doesn't found.", 404);
     }
 
-    await Review.updateOne(
-      { _id: reviewId },
-      {
-        status: 'approved',
-        updatedAt: new Date(),
-      },
-    );
+    if (date) {
+      await Review.updateOne(
+        { _id: reviewId },
+        {
+          createdAt: new Date(date),
+          updatedAt: new Date(),
+        },
+      );
+    } else {
+      await Review.updateOne(
+        { _id: reviewId },
+        {
+          status: 'approved',
+          updatedAt: new Date(),
+        },
+      );
+    }
   }
 }
 
