@@ -22,9 +22,6 @@ class UpdateReviewService {
           createdAt: new Date(date),
           updatedAt: new Date(),
         },
-        {
-          timestamps: false,
-        },
       );
     } else {
       await Review.updateOne(
