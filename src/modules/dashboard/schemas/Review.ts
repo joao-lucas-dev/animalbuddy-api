@@ -49,6 +49,12 @@ const reviewSchema = new Schema(
       type: String,
       required: true,
     },
+
+    createdAt: {
+      type: Date,
+      immutable: false,
+      default: Date.now(),
+    },
   },
   {
     timestamps: true,
