@@ -23,7 +23,7 @@ class UpdateReviewService {
           updatedAt: new Date(),
         },
         {
-          timestamps: true,
+          timestamps: false,
         },
       );
     } else {
