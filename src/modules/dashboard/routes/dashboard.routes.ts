@@ -9,6 +9,7 @@ import Customer from '@modules/checkout/schemas/Customer';
 import Order from '@modules/checkout/schemas/Order';
 import Product from '../schemas/Product';
 import Review from '../schemas/Review';
+import Coupon from '../schemas/Coupon';
 
 import CreateProductService from '../services/CreateProductService';
 import UpdateProductImagesService from '../services/UpdateProductImagesService';
@@ -28,6 +29,9 @@ import DeleteImagesService from '../services/DeleteImagesService';
 import DeleteImagesDescriptionService from '../services/DeleteImagesDescriptionService';
 import UpdateReadOrderService from '../services/UpdateReadOrderService';
 import GetOrderService from '../services/GetOrderService';
+import CreateCouponService from '../services/CreateCouponService';
+import UpdateCouponService from '../services/UpdateCouponService';
+import DeleteCouponService from '../services/DeleteCouponService';
 
 const dashboardRoutes = Router();
 const upload = multer(uploadConfig);
@@ -1065,6 +1069,136 @@ dashboardRoutes.patch(
     const orderIdFormatted = new ObjectID(orderId);
 
     await updateReadOrderService.execute(orderIdFormatted);
+
+    return response.send();
+  },
+);
+
+/**
+ * Coupons
+ */
+dashboardRoutes.get(
+  '/coupons',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.QUERY]: {
+      page: Joi.number().required(),
+      limit: Joi.number().required(),
+      order: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { page, limit, order } = request.query;
+
+    let newOrder = {};
+
+    switch (order) {
+      case 'recentDate':
+        newOrder = {
+          createdAt: -1,
+        };
+        break;
+      case 'oldestDate':
+        newOrder = {
+          createdAt: 1,
+        };
+        break;
+      default:
+        break;
+    }
+
+    const coupons = await Coupon.aggregate([
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          value: 1,
+          isActive: 1,
+          createdAt: 1,
+        },
+      },
+      {
+        $sort: {
+          ...newOrder,
+        },
+      },
+      {
+        $skip: Number(page) * Number(limit),
+      },
+      {
+        $limit: Number(limit),
+      },
+    ]);
+
+    return response.json(coupons);
+  },
+);
+
+dashboardRoutes.post(
+  '/coupons',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.BODY]: {
+      name: Joi.string().required(),
+      value: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { name, value } = request.body;
+
+    const createCouponService = new CreateCouponService();
+
+    const coupon = await createCouponService.execute({
+      name,
+      value,
+    });
+
+    return response.json(coupon);
+  },
+);
+
+dashboardRoutes.patch(
+  '/coupons/:couponId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.BODY]: {
+      isActive: Joi.boolean().required(),
+    },
+    [Segments.PARAMS]: {
+      couponId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { couponId } = request.params;
+    const { isActive } = request.body;
+
+    const updateCouponService = new UpdateCouponService();
+
+    await updateCouponService.execute({
+      couponId: new ObjectID(couponId),
+      isActive,
+    });
+
+    return response.send();
+  },
+);
+
+dashboardRoutes.delete(
+  '/coupons/:couponId',
+  enseureAuthenticated,
+  celebrate({
+    [Segments.PARAMS]: {
+      couponId: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { couponId } = request.params;
+
+    const deleteCouponService = new DeleteCouponService();
+
+    await deleteCouponService.execute({
+      couponId: new ObjectID(couponId),
+    });
 
     return response.send();
   },
