@@ -12,6 +12,7 @@ import countRangeParcentage from '../utils/reviews';
 import GetProductPageService from '../services/GetProductPageService';
 import CreateReviewPageService from '../services/CreateReviewPageService';
 import UpdateReviewImagesPageService from '../services/UpdateReviewImagesPageService';
+import GetCouponService from '../services/GetCouponService';
 
 const storeRouter = Router();
 const upload = multer(uploadConfig);
@@ -437,6 +438,28 @@ storeRouter.patch(
     });
 
     return response.send();
+  },
+);
+
+/**
+ * Coupon
+ */
+
+storeRouter.get(
+  '/coupons/:couponName',
+  celebrate({
+    [Segments.PARAMS]: {
+      couponName: Joi.string().required(),
+    },
+  }),
+  async (request, response) => {
+    const { couponName } = request.params;
+
+    const getCouponService = new GetCouponService();
+
+    const coupon = await getCouponService.execute(couponName);
+
+    return response.json({ name: coupon.name, value: coupon.value });
   },
 );
 
